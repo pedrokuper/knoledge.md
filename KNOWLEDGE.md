@@ -1578,3 +1578,138 @@ event-loop lag, and RSS; panel 10 filter updated for warn+error.
 - [prom-client: Histogram](https://github.com/siimon/prom-client#histogram)
 - [Google SRE Book: Latency SLOs](https://sre.google/sre-book/service-level-objectives/)
 - [Robust Perception: Cardinality is key](https://www.robustperception.io/cardinality-is-key/)
+
+---
+
+## 17. Monolith vs Microservices vs Event-Driven Architecture
+
+These are three separate axes, not three mutually exclusive boxes:
+
+- **Monolith vs Microservices** = how you draw *deployment* boundaries (one process vs many).
+- **Event-driven vs Request/Response (RPC/REST)** = how components *communicate* across whatever
+  boundaries you drew.
+
+You can have a request/response monolith (this project), an event-driven monolith (a single
+process that talks to itself via an in-memory event bus), request/response microservices (services
+calling each other's REST/gRPC APIs synchronously), or event-driven microservices (services
+publishing to Kafka/SQS/RabbitMQ, decoupled). Conflating the two axes is the most common mistake
+when this topic comes up in interviews.
+
+### Monolith — when it's the right call
+
+A monolith is **one deployable unit** containing all the business logic, even if internally
+organized into modules/domains (like this project's `url/`, `click/`, `counter/` folders).
+
+**Use a monolith when:**
+- Team is small (roughly < 8-10 engineers) — microservices' main cost is coordination overhead,
+  which only pays off once a single team can't agree on a single codebase/release cadence anymore.
+- Domain boundaries are still unclear or the product is pre-product-market-fit. Splitting services
+  along the wrong seams is far more expensive to undo than splitting a monolith's modules later —
+  modules live in one repo, one transaction, one deploy; undoing a network boundary means rewriting
+  contracts, migrating data, and coordinating two teams' release schedules.
+- You need transactional consistency across entities (e.g., "decrement inventory AND create order"
+  in one ACID transaction). Distributed transactions across services are hard (two-phase commit,
+  sagas) and a monolith gets this for free via the DB transaction.
+- Operational simplicity matters more than independent scaling — one thing to deploy, one thing to
+  monitor, one log stream, no service mesh, no distributed tracing required to debug a request.
+- This project is exactly this case: a single Express process. `url/`, `click/`, `counter/` are
+  domains within one deploy unit. The README's `npm run build && node dist/main.js` is the entire
+  deploy story. No inter-service network calls, no partial-failure-across-services class of bugs.
+
+**Cost of staying monolith too long:** a single team's changes start colliding (merge conflicts,
+shared test suite getting slow), unrelated features must scale together (can't scale the read-heavy
+redirect path independently from the write-heavy shorten path without scaling the whole process),
+and a bug in one module can crash the whole process for unrelated traffic.
+
+### Microservices — when it's the right call
+
+Microservices split the system into **independently deployable** services, each owning its own
+data store, usually communicating over the network (REST/gRPC, sync) or a broker (async).
+
+**Use microservices when:**
+- Independent scaling is a real, measured need. Concrete example from this project's own
+  shape: the redirect path (`GET /:shortCode`) gets ~10x the traffic of the shorten path
+  (NGINX config here gives `/*` 100 req/s vs `/shorten` 10 req/s) — at large enough scale you'd
+  split "redirect service" from "shorten service" so you can scale the cheap, hot read path
+  without paying for extra capacity on the write path, and vice versa.
+- Different parts of the system have genuinely different scaling/availability/tech requirements
+  (e.g., a write-heavy service that's fine being eventually consistent vs. a billing service that
+  must be ACID).
+- Multiple teams need to ship independently without blocking on each other's release trains — the
+  org chart is the real driver here (Conway's Law: system shape mirrors communication structure).
+- You need fault isolation: one service crashing shouldn't take down unrelated functionality. In a
+  monolith, an unhandled exception or memory leak in the analytics path can starve the redirect
+  path on the same event loop; as separate services, the analytics service falling over doesn't
+  touch redirects.
+- Polyglot needs: e.g., a hot path written in Go for raw throughput while the rest stays in
+  Node/TS — only possible across a process boundary.
+
+**Cost:** network calls replace function calls (latency, partial failure, retries, idempotency),
+each service needs its own CI/CD, monitoring, on-call story; debugging a single user request now
+means correlating logs/traces across services (this is *why* distributed tracing — section 12 —
+exists: it's the tool that makes microservices debuggable at all). Data consistency across services
+requires sagas/outbox patterns instead of a DB transaction.
+
+### Event-Driven Architecture — when it's the right call
+
+Event-driven = components communicate by **publishing facts about what happened** (events) to a
+broker, and other components **react** asynchronously, instead of one component directly calling
+another and waiting for a response.
+
+**Use event-driven when:**
+- Producer shouldn't block on, or even know about, every consumer. Example from this very project:
+  the redirect controller does fire-and-forget click inserts (section 7) — conceptually this is
+  already "event-driven-lite": "a redirect happened" is a fact the click-tracking logic reacts to
+  without the redirect response waiting on it. At larger scale this fire-and-forget `.catch()` call
+  becomes a real event (`UrlClicked`) published to Kafka/SQS, and you could add new consumers
+  (fraud detection, real-time analytics dashboards, billing) without ever touching the redirect
+  controller again — that's the core win: **new consumers, zero changes to the producer.**
+- You need to decouple services that have different uptime/throughput profiles. A queue/broker
+  absorbs bursts — if the analytics DB is down or slow, events queue up instead of the redirect
+  path failing or blocking (this project's `analyticsClient` with `w:1` writes + fire-and-forget is
+  the in-process version of this same idea — section "Two MongoDB clients" in CLAUDE.md).
+- Workflows naturally span multiple steps with retries/long-running state (order placed → payment
+  charged → inventory reserved → shipped) — event-driven plus a saga/state-machine fits better than
+  a long synchronous call chain that has to stay open across all of it.
+- Audit/replay matters: an event log is a durable history of "everything that happened," which you
+  can replay to rebuild state, debug an incident, or feed a new service that didn't even exist when
+  the events were originally produced.
+
+**Cost:** eventual consistency (consumer might process the event seconds later — fine for "send a
+welcome email," not fine for "confirm payment before shipping"), debugging requires tracing an event
+through N async consumers instead of reading a linear call stack, you need a broker (Kafka/SQS/
+RabbitMQ) as new infra to run/monitor, and message ordering/dedup/at-least-once-delivery semantics
+become real problems you must design for (idempotent consumers, dedup keys).
+
+### Decision shortcut
+
+| Question | Leans toward |
+|---|---|
+| Small team, unclear domain boundaries, need transactions? | Monolith |
+| Need independent scaling/deploys per well-understood domain, multiple teams? | Microservices |
+| Producer shouldn't wait for or know about consumers; need fan-out, buffering, replay? | Event-driven |
+| None of the above pains exist yet | Monolith (default) — split when a *specific, measured* pain shows up, not speculatively |
+
+The strongest real-world pattern: **start monolith (request/response), extract microservices only
+along seams where you've actually felt the pain** (a specific module scaling differently, a
+specific team blocked on releases), and **introduce events only where decoupling specifically pays
+off** (fan-out to multiple unknown future consumers, absorbing load spikes, audit/replay needs) —
+not as a default communication style everywhere.
+
+### How this project fits
+
+Monolith + mostly request/response, with one fire-and-forget async edge (click inserts) that is
+architecturally the seed of an event-driven boundary. If this project needed to scale further, the
+two most likely splits, following the "split along measured pain" rule above, would be:
+1. Separate the redirect service from the shorten service (different traffic profiles, see NGINX
+   rate limits).
+2. Turn the fire-and-forget click insert into a real published event (`UrlClicked`) so click
+   analytics could be consumed by multiple future services without redirect-path changes.
+
+**References:**
+- [Martin Fowler: Microservices](https://martinfowler.com/articles/microservices.html)
+- [Martin Fowler: MonolithFirst](https://martinfowler.com/bliki/MonolithFirst.html)
+- [Martin Fowler: What do you mean by "Event-Driven"?](https://martinfowler.com/articles/201701-event-driven.html)
+- [AWS: Monolithic vs Microservices Architecture](https://aws.amazon.com/microservices/)
+- [Confluent: Event-Driven Architecture](https://www.confluent.io/learn/event-driven-architecture/)
+- [Conway's Law](https://www.melconway.com/Home/Conways_Law.html)
