@@ -4,8 +4,8 @@
 
 ## Índice
 
-- [1. Rate Limiting L7 (NGINX)](#1-rate-limiting-l7-nginx)
-- [2. Latencia p99 — Análisis Profundo](#2-latencia-p99-análisis-profundo)
+- [1. Rate Limiting L7 (NGINX)](#sec-1)
+- [2. Latencia p99 — Análisis Profundo](#sec-2)
   - [Qué es realmente un percentil](#qué-es-realmente-un-percentil)
   - [Por qué el promedio está estructuralmente roto para latencia](#por-qué-el-promedio-está-estructuralmente-roto-para-latencia)
   - [La escalera de percentiles](#la-escalera-de-percentiles)
@@ -13,7 +13,7 @@
   - [Cómo se calculan los percentiles en la práctica](#cómo-se-calculan-los-percentiles-en-la-práctica)
   - [Histograma de Prometheus — cómo este proyecto expone la latencia](#histograma-de-prometheus-cómo-este-proyecto-expone-la-latencia)
   - [Por qué p99 < 10 ms con cache caliente](#por-qué-p99-10-ms-con-cache-caliente)
-- [3. Circuit Breaker y Degradación Elegante — Análisis Profundo](#3-circuit-breaker-y-degradación-elegante-análisis-profundo)
+- [3. Circuit Breaker y Degradación Elegante — Análisis Profundo](#sec-3)
   - [El problema central: fallas en cascada](#el-problema-central-fallas-en-cascada)
   - [La máquina de tres estados](#la-máquina-de-tres-estados)
   - [Dos estrategias de disparo](#dos-estrategias-de-disparo)
@@ -23,12 +23,12 @@
   - [Circuit breaker vs. patrones relacionados](#circuit-breaker-vs-patrones-relacionados)
   - [Implementaciones en producción](#implementaciones-en-producción)
   - [Observabilidad para circuit breakers](#observabilidad-para-circuit-breakers)
-- [4. Write Concern de MongoDB — `w:majority` vs `w:1`](#4-write-concern-de-mongodb-wmajority-vs-w1)
-- [5. Evicción LFU en Redis](#5-evicción-lfu-en-redis)
-- [6. Backoff Exponencial y Thundering Herd](#6-backoff-exponencial-y-thundering-herd)
+- [4. Write Concern de MongoDB — `w:majority` vs `w:1`](#sec-4)
+- [5. Evicción LFU en Redis](#sec-5)
+- [6. Backoff Exponencial y Thundering Herd](#sec-6)
   - [Backoff Exponencial](#backoff-exponencial)
   - [El problema del Thundering Herd](#el-problema-del-thundering-herd)
-- [7. Fire-and-Forget — No Esperar una Promise (Análisis Profundo)](#7-fire-and-forget-no-esperar-una-promise-análisis-profundo)
+- [7. Fire-and-Forget — No Esperar una Promise (Análisis Profundo)](#sec-7)
   - [La mecánica: qué pasa realmente en runtime](#la-mecánica-qué-pasa-realmente-en-runtime)
   - [La implementación de este proyecto](#la-implementación-de-este-proyecto)
   - [Por qué `.catch()` no es opcional](#por-qué-catch-no-es-opcional)
@@ -39,7 +39,7 @@
   - [Alternativas al fire-and-forget crudo](#alternativas-al-fire-and-forget-crudo)
   - [Árbol de decisión: ¿debería hacer await de esto?](#árbol-de-decisión-debería-hacer-await-de-esto)
   - [Este proyecto vs. analítica de producción](#este-proyecto-vs-analítica-de-producción)
-- [8. Alertas y el Pipeline de Señales SRE](#8-alertas-y-el-pipeline-de-señales-sre)
+- [8. Alertas y el Pipeline de Señales SRE](#sec-8)
   - [Monitorear no es responder incidentes](#monitorear-no-es-responder-incidentes)
   - [El pipeline de alertas de Prometheus](#el-pipeline-de-alertas-de-prometheus)
   - [`for:` — pending vs firing (debouncing)](#for-pending-vs-firing-debouncing)
@@ -49,30 +49,30 @@
   - [Mecánica — qué hace Alertmanager con una alerta firing](#mecánica-qué-hace-alertmanager-con-una-alerta-firing)
   - [Trampa — `for:` debe ser más corto que la vida del dato en la ventana de rate](#trampa-for-debe-ser-más-corto-que-la-vida-del-dato-en-la-ventana-de-rate)
   - [Cómo lo hace este proyecto (Alertas)](#cómo-lo-hace-este-proyecto-alertas)
-- [9. RED y USE — Dos Métodos para Elegir Métricas](#9-red-y-use-dos-métodos-para-elegir-métricas)
+- [9. RED y USE — Dos Métodos para Elegir Métricas](#sec-9)
   - [RED — para servicios orientados a requests (la app)](#red-para-servicios-orientados-a-requests-la-app)
   - [USE — para recursos (CPU, memoria, disco, pools, el event loop)](#use-para-recursos-cpu-memoria-disco-pools-el-event-loop)
   - [Por qué el lag del event loop es _la_ señal de saturación en Node](#por-qué-el-lag-del-event-loop-es-la-señal-de-saturación-en-node)
   - [Cómo lo hace este proyecto (RED/USE)](#cómo-lo-hace-este-proyecto-reduse)
-- [10. Liveness vs Readiness Probes](#10-liveness-vs-readiness-probes)
+- [10. Liveness vs Readiness Probes](#sec-10)
   - [La trampa de la tormenta de reinicios](#la-trampa-de-la-tormenta-de-reinicios)
   - [Cómo lo hace este proyecto (Probes)](#cómo-lo-hace-este-proyecto-probes)
-- [11. Cardinalidad de Labels de Métricas](#11-cardinalidad-de-labels-de-métricas)
+- [11. Cardinalidad de Labels de Métricas](#sec-11)
   - [Las reglas](#las-reglas)
   - [Cómo lo hace este proyecto (Cardinalidad)](#cómo-lo-hace-este-proyecto-cardinalidad)
-- [12. Correlación de Logs, Métricas y Trazas](#12-correlación-de-logs-métricas-y-trazas)
+- [12. Correlación de Logs, Métricas y Trazas](#sec-12)
   - [Cómo lo hace este proyecto (Correlación)](#cómo-lo-hace-este-proyecto-correlación)
-- [13. Hardening de Contenedores — Radio de Impacto y Aislamiento](#13-hardening-de-contenedores-radio-de-impacto-y-aislamiento)
+- [13. Hardening de Contenedores — Radio de Impacto y Aislamiento](#sec-13)
   - [Contenedores non-root](#contenedores-non-root)
   - [Límites de recursos — el problema del vecino ruidoso / OOM](#límites-de-recursos-el-problema-del-vecino-ruidoso-oom)
   - [Comparación de secretos timing-safe](#comparación-de-secretos-timing-safe)
   - [Binding de puertos solo a loopback](#binding-de-puertos-solo-a-loopback)
   - [Cómo lo hace este proyecto (Hardening)](#cómo-lo-hace-este-proyecto-hardening)
-- [14. Flujo de Datos de Métricas — Modelo Pull, Fuente vs Vista](#14-flujo-de-datos-de-métricas-modelo-pull-fuente-vs-vista)
+- [14. Flujo de Datos de Métricas — Modelo Pull, Fuente vs Vista](#sec-14)
   - [Pull vs push](#pull-vs-push)
   - [Dos familias en `/metrics`](#dos-familias-en-metrics)
   - [Cómo lo hace este proyecto (Métricas)](#cómo-lo-hace-este-proyecto-métricas)
-- [15. Parseo de URLs WHATWG y Normalización de Entradas](#15-parseo-de-urls-whatwg-y-normalización-de-entradas)
+- [15. Parseo de URLs WHATWG y Normalización de Entradas](#sec-15)
   - [Qué es el estándar WHATWG URL](#qué-es-el-estándar-whatwg-url)
   - [Zod `.url()` valida pero no normaliza](#zod-url-valida-pero-no-normaliza)
   - [El bug de dedup que esto causa](#el-bug-de-dedup-que-esto-causa)
@@ -80,7 +80,7 @@
   - [La regla general: normalizar entradas en el borde](#la-regla-general-normalizar-entradas-en-el-borde)
   - [Cuándo ir más lejos](#cuándo-ir-más-lejos)
   - [Cómo lo hace este proyecto (Normalización)](#cómo-lo-hace-este-proyecto-normalización)
-- [16. Diseño de Histogramas de Prometheus — Buckets, Labels y Cobertura de Cola](#16-diseño-de-histogramas-de-prometheus-buckets-labels-y-cobertura-de-cola)
+- [16. Diseño de Histogramas de Prometheus — Buckets, Labels y Cobertura de Cola](#sec-16)
   - [Por qué histogramas para latencia (no gauges, no counters)](#por-qué-histogramas-para-latencia-no-gauges-no-counters)
   - [Cómo funcionan los buckets](#cómo-funcionan-los-buckets)
   - [Diseño de buckets: cubrir tu SLO, extender la cola](#diseño-de-buckets-cubrir-tu-slo-extender-la-cola)
@@ -88,13 +88,13 @@
   - [Cómo `status_class` habilita la alerta HighErrorRate](#cómo-status_class-habilita-la-alerta-higherrorrate)
   - [Decisiones de diseño de paneles en Grafana](#decisiones-de-diseño-de-paneles-en-grafana)
   - [Cómo lo hace este proyecto (Histogramas)](#cómo-lo-hace-este-proyecto-histogramas)
-- [17. Monolito vs Microservicios vs Arquitectura Orientada a Eventos](#17-monolito-vs-microservicios-vs-arquitectura-orientada-a-eventos)
+- [17. Monolito vs Microservicios vs Arquitectura Orientada a Eventos](#sec-17)
   - [Monolito — cuándo es la decisión correcta](#monolito-cuándo-es-la-decisión-correcta)
   - [Microservicios — cuándo es la decisión correcta](#microservicios-cuándo-es-la-decisión-correcta)
   - [Arquitectura orientada a eventos — cuándo es la decisión correcta](#arquitectura-orientada-a-eventos-cuándo-es-la-decisión-correcta)
   - [Atajo de decisión](#atajo-de-decisión)
   - [Cómo encaja este proyecto](#cómo-encaja-este-proyecto)
-- [18. API Gateway — Qué Es, Patrones, Casos de Uso](#18-api-gateway-qué-es-patrones-casos-de-uso)
+- [18. API Gateway — Qué Es, Patrones, Casos de Uso](#sec-18)
   - [Qué hace realmente un API Gateway](#qué-hace-realmente-un-api-gateway)
   - [API Gateway vs reverse proxy vs load balancer vs service mesh](#api-gateway-vs-reverse-proxy-vs-load-balancer-vs-service-mesh)
   - [Patrones centrales](#patrones-centrales)
@@ -102,19 +102,21 @@
   - [Implementaciones en producción](#implementaciones-en-producción-1)
   - [Tradeoffs](#tradeoffs-1)
   - [Cómo encaja este proyecto](#cómo-encaja-este-proyecto-1)
-- [19. SQL vs NoSQL — Qué Es Cada Uno y Cuándo Usarlos](#19-sql-vs-nosql-qué-es-cada-uno-y-cuándo-usarlos)
-- [20. DynamoDB](#20-dynamodb)
-- [21. OpenSearch](#21-opensearch)
-- [22. Redis a Fondo — Clave/Valor, Cache, Idempotencia y Atomicidad](#22-redis-a-fondo-clavevalor-cache-idempotencia-y-atomicidad)
-- [23. Pool de Conexiones](#23-pool-de-conexiones)
-- [24. Hash vs Cifrado — Simétrico y Asimétrico](#24-hash-vs-cifrado-simétrico-y-asimétrico)
-- [25. JWT — Autenticación, Autorización y el Chequeo `sub` == `_id`](#sec-25-jwt)
-- [26. Service Mesh y el Patrón Mediator](#26-service-mesh-y-el-patrón-mediator)
-- [27. Escalado Horizontal vs Vertical](#27-escalado-horizontal-vs-vertical)
-- [28. Arquitectura Orientada a Eventos — Caso: Depósito Bancario](#sec-28-eventos-deposito)
-- [29. Pendientes de Investigación](#29-pendientes-de-investigación)
+- [19. SQL vs NoSQL — Qué Es Cada Uno y Cuándo Usarlos](#sec-19)
+- [20. DynamoDB](#sec-20)
+- [21. OpenSearch](#sec-21)
+- [22. Redis a Fondo — Clave/Valor, Cache, Idempotencia y Atomicidad](#sec-22)
+- [23. Pool de Conexiones](#sec-23)
+- [24. Hash vs Cifrado — Simétrico y Asimétrico](#sec-24)
+- [25. JWT — Autenticación, Autorización y el Chequeo `sub` == `_id`](#sec-25)
+- [26. Service Mesh y el Patrón Mediator](#sec-26)
+- [27. Escalado Horizontal vs Vertical](#sec-27)
+- [28. Arquitectura Orientada a Eventos — Caso: Depósito Bancario](#sec-28)
+- [29. Pendientes de Investigación](#sec-29)
 
 ---
+
+<a id="sec-1"></a>
 
 ## 1. Rate Limiting L7 (NGINX)
 
@@ -150,6 +152,8 @@ Esa diferenciación solo es posible en L7 — en L4 todos esos requests se ven i
 - [NGINX blog: Rate Limiting with NGINX](https://www.nginx.com/blog/rate-limiting-nginx/)
 
 ---
+
+<a id="sec-2"></a>
 
 ## 2. Latencia p99 — Análisis Profundo
 
@@ -307,6 +311,8 @@ Cuando Redis está frío (recién reiniciado), cada request golpea MongoDB. El p
 - [Cloudflare: How we think about percentiles](https://blog.cloudflare.com/the-problem-with-averages/)
 
 ---
+
+<a id="sec-3"></a>
 
 ## 3. Circuit Breaker y Degradación Elegante — Análisis Profundo
 
@@ -563,6 +569,8 @@ En este proyecto, `redis_errors_total` en Prometheus cubre esto parcialmente. Un
 
 ---
 
+<a id="sec-4"></a>
+
 ## 4. Write Concern de MongoDB — `w:majority` vs `w:1`
 
 MongoDB puede correr como **replica set**: múltiples servidores que guardan copias de los datos (1 primario + N secundarios). Las escrituras van al primario; los secundarios replican de forma asíncrona.
@@ -587,6 +595,8 @@ El **write concern** controla cuándo MongoDB confirma (acknowledge) una escritu
 - [MongoDB: Replica Set Write Concern](https://www.mongodb.com/docs/manual/core/replica-set-write-concern/)
 
 ---
+
+<a id="sec-5"></a>
 
 ## 5. Evicción LFU en Redis
 
@@ -624,6 +634,8 @@ LRU evicta A (último acceso más viejo). LFU evicta B (menor frecuencia total).
 - [Wikipedia: Least Frequently Used](https://en.wikipedia.org/wiki/Least_frequently_used)
 
 ---
+
+<a id="sec-6"></a>
 
 ## 6. Backoff Exponencial y Thundering Herd
 
@@ -670,6 +682,8 @@ El **jitter** (varianza aleatoria agregada al delay) es una mejora común que di
 - [ioredis retry strategy docs](https://github.com/redis/ioredis#auto-reconnect)
 
 ---
+
+<a id="sec-7"></a>
 
 ## 7. Fire-and-Forget — No Esperar una Promise (Análisis Profundo)
 
@@ -1169,6 +1183,8 @@ El patrón F&F acá es correcto para un proyecto de aprendizaje / despliegue chi
 
 ---
 
+<a id="sec-8"></a>
+
 ## 8. Alertas y el Pipeline de Señales SRE
 
 SRE = Site Reliability Engineering
@@ -1303,6 +1319,8 @@ t=5m   el timer de for: completaría... pero los 50 errores acaban de salir de l
 
 ---
 
+<a id="sec-9"></a>
+
 ## 9. RED y USE — Dos Métodos para Elegir Métricas
 
 No podés graficar todo. Dos modelos mentales complementarios te dicen _qué_ señales importan.
@@ -1343,6 +1361,8 @@ Node es single-threaded. Si un handler sincrónico acapara la CPU, el event loop
 - [Node.js perf_hooks: monitorEventLoopDelay](https://nodejs.org/api/perf_hooks.html#perf_hooksmonitoreventloopdelayoptions)
 
 ---
+
+<a id="sec-10"></a>
 
 ## 10. Liveness vs Readiness Probes
 
@@ -1390,6 +1410,8 @@ ruteo del load balancer:     GET /health                            ← decisió
 
 ---
 
+<a id="sec-11"></a>
+
 ## 11. Cardinalidad de Labels de Métricas
 
 **Cardinalidad** = la cantidad de series temporales distintas que produce una métrica. Prometheus guarda **una serie temporal por cada combinación única de valores de labels**, en memoria. Esta es la forma más fácil de tirar abajo Prometheus.
@@ -1435,6 +1457,8 @@ Esto es una **bomba de cardinalidad**. Un bot escaneando paths aleatorios podrí
 
 ---
 
+<a id="sec-12"></a>
+
 ## 12. Correlación de Logs, Métricas y Trazas
 
 Los "tres pilares de la observabilidad" responden preguntas distintas:
@@ -1473,6 +1497,8 @@ Para un **servicio único**, un request ID end-to-end es el 80% barato del traci
 - [pino-http: request id](https://github.com/pinojs/pino-http#pinohttpopts-stream)
 
 ---
+
+<a id="sec-13"></a>
 
 ## 13. Hardening de Contenedores — Radio de Impacto y Aislamiento
 
@@ -1537,6 +1563,8 @@ ports:
 
 ---
 
+<a id="sec-14"></a>
+
 ## 14. Flujo de Datos de Métricas — Modelo Pull, Fuente vs Vista
 
 Una confusión común: _"si Grafana ya muestra los datos, ¿el endpoint `/metrics` de la app no es un bypass sin sentido?"_ No — es la **fuente**. La dependencia corre en la otra dirección.
@@ -1582,6 +1610,8 @@ El bloque `process_*` / `nodejs_*` **no es ruido** — es la vista de recursos (
 - [Grafana: Prometheus data source](https://grafana.com/docs/grafana/latest/datasources/prometheus/)
 
 ---
+
+<a id="sec-15"></a>
 
 ## 15. Parseo de URLs WHATWG y Normalización de Entradas
 
@@ -1682,6 +1712,8 @@ Este proyecto se queda en `.trim()` — alcanza para el caso de dedup y evita re
 - [Node.js: URL module (implementación WHATWG)](https://nodejs.org/api/url.html#the-whatwg-url-api)
 
 ---
+
+<a id="sec-16"></a>
 
 ## 16. Diseño de Histogramas de Prometheus — Buckets, Labels y Cobertura de Cola
 
@@ -1811,6 +1843,8 @@ El filtro del panel de logs de error en Loki se cambió de `{level="50"}` (solo 
 
 ---
 
+<a id="sec-17"></a>
+
 ## 17. Monolito vs Microservicios vs Arquitectura Orientada a Eventos
 
 Estos son tres ejes separados, no tres cajas mutuamente excluyentes:
@@ -1889,6 +1923,8 @@ Monolito + mayormente request/response, con un borde async fire-and-forget (los 
 - [Conway's Law](https://www.melconway.com/Home/Conways_Law.html)
 
 ---
+
+<a id="sec-18"></a>
 
 ## 18. API Gateway — Qué Es, Patrones, Casos de Uso
 
@@ -2012,6 +2048,8 @@ Lo que deliberadamente **no** hace (porque todavía no lo necesita): validación
 
 ---
 
+<a id="sec-19"></a>
+
 ## 19. SQL vs NoSQL — Qué Es Cada Uno y Cuándo Usarlos
 
 ### Qué es cada uno
@@ -2061,6 +2099,8 @@ Este proyecto usa MongoDB con un patrón de acceso 100% clave→valor (`shortUrl
 
 ---
 
+<a id="sec-20"></a>
+
 ## 20. DynamoDB
 
 **DynamoDB** es la base clave/valor y de documentos **totalmente administrada** de AWS. Vos no ves servers, réplicas ni shards: definís tablas, y AWS particiona y replica por debajo (multi-AZ) con latencia de un dígito de milisegundos a prácticamente cualquier escala.
@@ -2105,6 +2145,8 @@ Este proyecto usa MongoDB con un patrón de acceso 100% clave→valor (`shortUrl
 - [Alex DeBrie: single-table design](https://www.alexdebrie.com/posts/dynamodb-single-table/)
 
 ---
+
+<a id="sec-21"></a>
 
 ## 21. OpenSearch
 
@@ -2154,6 +2196,8 @@ escritura → base transaccional (fuente de verdad)
 - [BM25 — el algoritmo de relevancia](https://en.wikipedia.org/wiki/Okapi_BM25)
 
 ---
+
+<a id="sec-22"></a>
 
 ## 22. Redis a Fondo — Clave/Valor, Cache, Idempotencia y Atomicidad
 
@@ -2240,6 +2284,8 @@ Tres formas de recuperar la atomicidad (esto es lo que estaba detrás del apunte
 
 ---
 
+<a id="sec-23"></a>
+
 ## 23. Pool de Conexiones
 
 ### Qué es
@@ -2283,6 +2329,8 @@ El escenario de cascada de §3 empieza exactamente acá: dependencia lenta → c
 - [AWS RDS Proxy](https://aws.amazon.com/rds/proxy/)
 
 ---
+
+<a id="sec-24"></a>
 
 ## 24. Hash vs Cifrado — Simétrico y Asimétrico
 
@@ -2348,7 +2396,7 @@ Mismo patrón en SSH, Signal/WhatsApp, PGP. Y JWT usa exactamente la misma dicot
 
 ---
 
-<a id="sec-25-jwt"></a>
+<a id="sec-25"></a>
 
 ## 25. JWT — Autenticación, Autorización y el Chequeo `sub` == `_id`
 
@@ -2411,6 +2459,8 @@ Del apunte "toda la auth se puede centralizar en el gateway / prevalidar el usua
 
 ---
 
+<a id="sec-26"></a>
+
 ## 26. Service Mesh y el Patrón Mediator
 
 ### El patrón Mediator (GoF, nivel código)
@@ -2468,6 +2518,8 @@ servicio A ──► [sidecar A] ═══ red (mTLS) ═══ [sidecar B] ─�
 
 ---
 
+<a id="sec-27"></a>
+
 ## 27. Escalado Horizontal vs Vertical
 
 ### Las dos direcciones
@@ -2513,7 +2565,7 @@ Las _sticky sessions_ (el LB fija cada usuario a una instancia) son el parche cu
 
 ---
 
-<a id="sec-28-eventos-deposito"></a>
+<a id="sec-28"></a>
 
 ## 28. Arquitectura Orientada a Eventos — Caso: Depósito Bancario
 
@@ -2573,6 +2625,8 @@ Qué se ganó, en términos de los apuntes y secciones previas:
 - [Confluent: Event-Driven Architecture](https://www.confluent.io/learn/event-driven-architecture/)
 
 ---
+
+<a id="sec-29"></a>
 
 ## 29. Pendientes de Investigación
 
