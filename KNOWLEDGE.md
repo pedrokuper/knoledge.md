@@ -48,30 +48,30 @@
   - [Mecánica — qué hace Prometheus en cada ciclo](#mecánica-qué-hace-prometheus-en-cada-ciclo)
   - [Mecánica — qué hace Alertmanager con una alerta firing](#mecánica-qué-hace-alertmanager-con-una-alerta-firing)
   - [Trampa — `for:` debe ser más corto que la vida del dato en la ventana de rate](#trampa-for-debe-ser-más-corto-que-la-vida-del-dato-en-la-ventana-de-rate)
-  - [Cómo lo hace este proyecto](#cómo-lo-hace-este-proyecto)
+  - [Cómo lo hace este proyecto (Alertas)](#cómo-lo-hace-este-proyecto-alertas)
 - [9. RED y USE — Dos Métodos para Elegir Métricas](#9-red-y-use-dos-métodos-para-elegir-métricas)
   - [RED — para servicios orientados a requests (la app)](#red-para-servicios-orientados-a-requests-la-app)
   - [USE — para recursos (CPU, memoria, disco, pools, el event loop)](#use-para-recursos-cpu-memoria-disco-pools-el-event-loop)
   - [Por qué el lag del event loop es _la_ señal de saturación en Node](#por-qué-el-lag-del-event-loop-es-la-señal-de-saturación-en-node)
-  - [Cómo lo hace este proyecto](#cómo-lo-hace-este-proyecto-1)
+  - [Cómo lo hace este proyecto (RED/USE)](#cómo-lo-hace-este-proyecto-reduse)
 - [10. Liveness vs Readiness Probes](#10-liveness-vs-readiness-probes)
   - [La trampa de la tormenta de reinicios](#la-trampa-de-la-tormenta-de-reinicios)
-  - [Cómo lo hace este proyecto](#cómo-lo-hace-este-proyecto-2)
+  - [Cómo lo hace este proyecto (Probes)](#cómo-lo-hace-este-proyecto-probes)
 - [11. Cardinalidad de Labels de Métricas](#11-cardinalidad-de-labels-de-métricas)
   - [Las reglas](#las-reglas)
-  - [Cómo lo hace este proyecto](#cómo-lo-hace-este-proyecto-3)
+  - [Cómo lo hace este proyecto (Cardinalidad)](#cómo-lo-hace-este-proyecto-cardinalidad)
 - [12. Correlación de Logs, Métricas y Trazas](#12-correlación-de-logs-métricas-y-trazas)
-  - [Cómo lo hace este proyecto](#cómo-lo-hace-este-proyecto-4)
+  - [Cómo lo hace este proyecto (Correlación)](#cómo-lo-hace-este-proyecto-correlación)
 - [13. Hardening de Contenedores — Radio de Impacto y Aislamiento](#13-hardening-de-contenedores-radio-de-impacto-y-aislamiento)
   - [Contenedores non-root](#contenedores-non-root)
   - [Límites de recursos — el problema del vecino ruidoso / OOM](#límites-de-recursos-el-problema-del-vecino-ruidoso-oom)
   - [Comparación de secretos timing-safe](#comparación-de-secretos-timing-safe)
   - [Binding de puertos solo a loopback](#binding-de-puertos-solo-a-loopback)
-  - [Cómo lo hace este proyecto](#cómo-lo-hace-este-proyecto-5)
+  - [Cómo lo hace este proyecto (Hardening)](#cómo-lo-hace-este-proyecto-hardening)
 - [14. Flujo de Datos de Métricas — Modelo Pull, Fuente vs Vista](#14-flujo-de-datos-de-métricas-modelo-pull-fuente-vs-vista)
   - [Pull vs push](#pull-vs-push)
   - [Dos familias en `/metrics`](#dos-familias-en-metrics)
-  - [Cómo lo hace este proyecto](#cómo-lo-hace-este-proyecto-6)
+  - [Cómo lo hace este proyecto (Métricas)](#cómo-lo-hace-este-proyecto-métricas)
 - [15. Parseo de URLs WHATWG y Normalización de Entradas](#15-parseo-de-urls-whatwg-y-normalización-de-entradas)
   - [Qué es el estándar WHATWG URL](#qué-es-el-estándar-whatwg-url)
   - [Zod `.url()` valida pero no normaliza](#zod-url-valida-pero-no-normaliza)
@@ -79,7 +79,7 @@
   - [El fix: `.trim()` antes de `.url()`](#el-fix-trim-antes-de-url)
   - [La regla general: normalizar entradas en el borde](#la-regla-general-normalizar-entradas-en-el-borde)
   - [Cuándo ir más lejos](#cuándo-ir-más-lejos)
-  - [Cómo lo hace este proyecto](#cómo-lo-hace-este-proyecto-7)
+  - [Cómo lo hace este proyecto (Normalización)](#cómo-lo-hace-este-proyecto-normalización)
 - [16. Diseño de Histogramas de Prometheus — Buckets, Labels y Cobertura de Cola](#16-diseño-de-histogramas-de-prometheus-buckets-labels-y-cobertura-de-cola)
   - [Por qué histogramas para latencia (no gauges, no counters)](#por-qué-histogramas-para-latencia-no-gauges-no-counters)
   - [Cómo funcionan los buckets](#cómo-funcionan-los-buckets)
@@ -87,7 +87,7 @@
   - [El label `status_class` — segmentación por resultado sin explosión de cardinalidad](#el-label-status_class-segmentación-por-resultado-sin-explosión-de-cardinalidad)
   - [Cómo `status_class` habilita la alerta HighErrorRate](#cómo-status_class-habilita-la-alerta-higherrorrate)
   - [Decisiones de diseño de paneles en Grafana](#decisiones-de-diseño-de-paneles-en-grafana)
-  - [Cómo lo hace este proyecto](#cómo-lo-hace-este-proyecto-8)
+  - [Cómo lo hace este proyecto (Histogramas)](#cómo-lo-hace-este-proyecto-histogramas)
 - [17. Monolito vs Microservicios vs Arquitectura Orientada a Eventos](#17-monolito-vs-microservicios-vs-arquitectura-orientada-a-eventos)
   - [Monolito — cuándo es la decisión correcta](#monolito-cuándo-es-la-decisión-correcta)
   - [Microservicios — cuándo es la decisión correcta](#microservicios-cuándo-es-la-decisión-correcta)
@@ -122,14 +122,14 @@
 
 El modelo OSI tiene 7 capas:
 
-| Capa  | Nombre          | Qué ve                                       |
-| ----- | --------------- | -------------------------------------------- |
-| 1     | Física          | bits crudos / cables                         |
-| 2     | Enlace de datos | direcciones MAC, frames                      |
-| 3     | Red             | direcciones IP                               |
-| 4     | Transporte      | puertos TCP/UDP                              |
-| 5–6   | Sesión/Present. | (rara vez se distinguen en la práctica)      |
-| **7** | **Aplicación**  | **métodos HTTP, URLs, headers, cookies**     |
+| Capa  | Nombre          | Qué ve                                   |
+| ----- | --------------- | ---------------------------------------- |
+| 1     | Física          | bits crudos / cables                     |
+| 2     | Enlace de datos | direcciones MAC, frames                  |
+| 3     | Red             | direcciones IP                           |
+| 4     | Transporte      | puertos TCP/UDP                          |
+| 5–6   | Sesión/Present. | (rara vez se distinguen en la práctica)  |
+| **7** | **Aplicación**  | **métodos HTTP, URLs, headers, cookies** |
 
 **El rate limiting L4** (IP + puerto) es tosco: solo sabe _quién_ se conecta.
 **El rate limiting L7** es inteligente: NGINX puede inspeccionar el request HTTP y aplicar límites distintos por path, por método, por valor de header, etc.
@@ -190,15 +190,15 @@ Esta forma de distribución se llama **sesgada a la derecha** (right-skewed). En
 
 ### La escalera de percentiles
 
-| Percentil | En criollo                                     | Quién lo experimenta                                              |
-| --------- | ---------------------------------------------- | ----------------------------------------------------------------- |
-| p50       | Mediana — el usuario "típico"                  | La mitad de los usuarios                                           |
-| p75       | 3 de cada 4 usuarios están al menos así de rápido | Tres cuartos de los usuarios                                     |
-| p90       | 9 de cada 10 usuarios                          | Casi típico                                                        |
-| p95       | 19 de cada 20 usuarios                         | Donde arrancan la mayoría de los SLAs                              |
-| p99       | 99 de cada 100 usuarios                        | Donde se definen la mayoría de los SLAs de producción              |
-| p999      | 999 de cada 1000 usuarios                      | 1 de cada 1000 usuarios lo sufre — a 10k req/s, son 10 usuarios/s |
-| p9999     | 9999 de cada 10000 usuarios                    | Raro pero real; las pausas de GC suelen aparecer acá               |
+| Percentil | En criollo                                        | Quién lo experimenta                                              |
+| --------- | ------------------------------------------------- | ----------------------------------------------------------------- |
+| p50       | Mediana — el usuario "típico"                     | La mitad de los usuarios                                          |
+| p75       | 3 de cada 4 usuarios están al menos así de rápido | Tres cuartos de los usuarios                                      |
+| p90       | 9 de cada 10 usuarios                             | Casi típico                                                       |
+| p95       | 19 de cada 20 usuarios                            | Donde arrancan la mayoría de los SLAs                             |
+| p99       | 99 de cada 100 usuarios                           | Donde se definen la mayoría de los SLAs de producción             |
+| p999      | 999 de cada 1000 usuarios                         | 1 de cada 1000 usuarios lo sufre — a 10k req/s, son 10 usuarios/s |
+| p9999     | 9999 de cada 10000 usuarios                       | Raro pero real; las pausas de GC suelen aparecer acá              |
 
 **Elegir qué percentil te importa** depende del volumen de tráfico:
 
@@ -461,14 +461,14 @@ Aplicalo cuando **las tres** condiciones sean ciertas:
 
 ### Tradeoffs
 
-| Preocupación       | Sin circuit breaker                        | Con circuit breaker                                       |
-| ------------------ | ------------------------------------------ | ---------------------------------------------------------- |
-| Modo de falla      | Lento (los timeouts se acumulan)           | Rápido (rechazo inmediato)                                  |
-| Recuperación       | Automática cuando la dependencia se recupera | Requiere ciclo de probe HALF-OPEN (agrega una demora)     |
-| Requiere fallback  | No (pero vas a devolver errores igual)     | Sí — hay que definir qué devolver cuando está abierto       |
-| Complejidad        | Baja                                       | Moderada (máquina de estados, umbrales, timers)             |
-| Falsos positivos   | N/A                                        | Puede abrirse por picos transitorios, rechazando requests válidos |
-| Observabilidad     | Fácil (solo mirar errores)                 | Hay que instrumentar las transiciones de estado             |
+| Preocupación      | Sin circuit breaker                          | Con circuit breaker                                               |
+| ----------------- | -------------------------------------------- | ----------------------------------------------------------------- |
+| Modo de falla     | Lento (los timeouts se acumulan)             | Rápido (rechazo inmediato)                                        |
+| Recuperación      | Automática cuando la dependencia se recupera | Requiere ciclo de probe HALF-OPEN (agrega una demora)             |
+| Requiere fallback | No (pero vas a devolver errores igual)       | Sí — hay que definir qué devolver cuando está abierto             |
+| Complejidad       | Baja                                         | Moderada (máquina de estados, umbrales, timers)                   |
+| Falsos positivos  | N/A                                          | Puede abrirse por picos transitorios, rechazando requests válidos |
+| Observabilidad    | Fácil (solo mirar errores)                   | Hay que instrumentar las transiciones de estado                   |
 
 **El problema del falso positivo:** si tu umbral de error es demasiado agresivo, un hipo breve de red abre el circuito y empezás a rechazar requests sanos innecesariamente. Soluciones:
 
@@ -482,13 +482,13 @@ Aplicalo cuando **las tres** condiciones sean ciertas:
 
 Se confunden seguido. Resuelven problemas distintos y se usan frecuentemente juntos:
 
-| Patrón                  | Qué hace                                           | Cuándo usarlo                          |
-| ----------------------- | --------------------------------------------------- | --------------------------------------- |
-| **Circuit breaker**     | Deja de llamar a una dependencia que falla; falla rápido | La dependencia está lenta/caída     |
-| **Retry con backoff**   | Reintenta después de una falla                      | Errores transitorios (blip momentáneo)   |
-| **Timeout**             | Abandona una llamada que tarda demasiado            | Prevenir esperas sin límite              |
-| **Bulkhead**            | Aísla pools de threads/conexiones por dependencia   | Una dependencia lenta no debe bloquear a las demás |
-| **Fallback**            | Devuelve datos alternativos cuando el primario falla | Cualquier falla que necesite respuesta  |
+| Patrón                | Qué hace                                                 | Cuándo usarlo                                      |
+| --------------------- | -------------------------------------------------------- | -------------------------------------------------- |
+| **Circuit breaker**   | Deja de llamar a una dependencia que falla; falla rápido | La dependencia está lenta/caída                    |
+| **Retry con backoff** | Reintenta después de una falla                           | Errores transitorios (blip momentáneo)             |
+| **Timeout**           | Abandona una llamada que tarda demasiado                 | Prevenir esperas sin límite                        |
+| **Bulkhead**          | Aísla pools de threads/conexiones por dependencia        | Una dependencia lenta no debe bloquear a las demás |
+| **Fallback**          | Devuelve datos alternativos cuando el primario falla     | Cualquier falla que necesite respuesta             |
 
 **Combinándolos correctamente:**
 
@@ -508,13 +508,13 @@ Retry sin circuit breaker es peligroso: 100 clientes reintentando 3 veces cada u
 
 ### Implementaciones en producción
 
-| Librería                                                           | Lenguaje | Notas                                                    |
-| ------------------------------------------------------------------ | -------- | -------------------------------------------------------- |
-| [opossum](https://nodeshift.dev/opossum/)                          | Node.js  | La más popular; máquina de estados completa, métricas, eventos |
-| [Resilience4j](https://resilience4j.readme.io/docs/circuitbreaker) | Java     | Sucesor de Hystrix; ventanas por conteo + tasa            |
-| [Polly](https://github.com/App-vNext/Polly)                        | .NET     | Composición de políticas: retry + CB + timeout + bulkhead |
+| Librería                                                           | Lenguaje | Notas                                                            |
+| ------------------------------------------------------------------ | -------- | ---------------------------------------------------------------- |
+| [opossum](https://nodeshift.dev/opossum/)                          | Node.js  | La más popular; máquina de estados completa, métricas, eventos   |
+| [Resilience4j](https://resilience4j.readme.io/docs/circuitbreaker) | Java     | Sucesor de Hystrix; ventanas por conteo + tasa                   |
+| [Polly](https://github.com/App-vNext/Polly)                        | .NET     | Composición de políticas: retry + CB + timeout + bulkhead        |
 | [Hystrix](https://github.com/Netflix/Hystrix)                      | Java     | El original de Netflix; en modo mantenimiento, usar Resilience4j |
-| [pybreaker](https://github.com/danielfm/pybreaker)                 | Python   | Simple, usado en producción                               |
+| [pybreaker](https://github.com/danielfm/pybreaker)                 | Python   | Simple, usado en producción                                      |
 
 **Ejemplo con opossum** (cómo se ve un circuit breaker completo en Node.js):
 
@@ -569,10 +569,10 @@ MongoDB puede correr como **replica set**: múltiples servidores que guardan cop
 
 El **write concern** controla cuándo MongoDB confirma (acknowledge) una escritura al cliente:
 
-| Write Concern | Se confirma cuando…                                    | Riesgo si el primario crashea                                        |
-| ------------- | ------------------------------------------------------ | --------------------------------------------------------------------- |
-| `w:1`         | El primario escribió en memoria (aún no replicado)     | Se pueden perder datos (el primario crasheó antes de que los secundarios se pongan al día) |
-| `w:majority`  | Una mayoría de los miembros del replica set escribieron | El dato es durable — aunque el primario crashee, los secundarios lo tienen |
+| Write Concern | Se confirma cuando…                                     | Riesgo si el primario crashea                                                              |
+| ------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `w:1`         | El primario escribió en memoria (aún no replicado)      | Se pueden perder datos (el primario crasheó antes de que los secundarios se pongan al día) |
+| `w:majority`  | Una mayoría de los miembros del replica set escribieron | El dato es durable — aunque el primario crashee, los secundarios lo tienen                 |
 
 **En este proyecto:**
 
@@ -597,12 +597,12 @@ Cuando Redis se queda sin memoria, tiene que evictar (borrar) algunas claves par
 **Otras políticas de evicción para comparar:**
 
 | Política         | Evicta…                                                              |
-| ---------------- | --------------------------------------------------------------------- |
-| `noeviction`     | Nada — devuelve error en escrituras nuevas cuando está lleno           |
-| `allkeys-lru`    | Least Recently Used — la clave inactiva hace más tiempo                |
-| `allkeys-lfu`    | Least Frequently Used — la clave accedida menos veces (la usada acá)   |
-| `allkeys-random` | Una clave al azar                                                      |
-| `volatile-*`     | Igual que las anteriores pero solo entre claves con TTL configurado    |
+| ---------------- | -------------------------------------------------------------------- |
+| `noeviction`     | Nada — devuelve error en escrituras nuevas cuando está lleno         |
+| `allkeys-lru`    | Least Recently Used — la clave inactiva hace más tiempo              |
+| `allkeys-lfu`    | Least Frequently Used — la clave accedida menos veces (la usada acá) |
+| `allkeys-random` | Una clave al azar                                                    |
+| `volatile-*`     | Igual que las anteriores pero solo entre claves con TTL configurado  |
 
 **¿Por qué LFU sobre LRU para este caso de uso?**
 
@@ -855,15 +855,15 @@ Usalo cuando **las tres** condiciones se cumplan:
 
 **Buenos casos de uso:**
 
-| Caso de uso                          | Por qué F&F encaja                                        |
-| ------------------------------------ | ---------------------------------------------------------- |
-| Analítica de clicks/vistas           | El usuario no necesita esperar; perder un click es aceptable |
+| Caso de uso                          | Por qué F&F encaja                                               |
+| ------------------------------------ | ---------------------------------------------------------------- |
+| Analítica de clicks/vistas           | El usuario no necesita esperar; perder un click es aceptable     |
 | Escrituras de audit log              | Observabilidad, no correctitud; no bloquear el flujo del usuario |
-| Calentar cache después de leer la DB | Si falla, el próximo request solo tiene un cache miss       |
-| Enviar un email de bienvenida        | La entrega de email es async igual; falla → cola de retry   |
-| Actualizar un timestamp "last seen"  | Un dato levemente viejo está bien                           |
-| Incrementar un counter de Prometheus | En memoria; no puede fallar en el sentido tradicional       |
-| Entrega de webhooks a terceros       | Mandar y seguir; la entrega es problema de ellos            |
+| Calentar cache después de leer la DB | Si falla, el próximo request solo tiene un cache miss            |
+| Enviar un email de bienvenida        | La entrega de email es async igual; falla → cola de retry        |
+| Actualizar un timestamp "last seen"  | Un dato levemente viejo está bien                                |
+| Incrementar un counter de Prometheus | En memoria; no puede fallar en el sentido tradicional            |
+| Entrega de webhooks a terceros       | Mandar y seguir; la entrega es problema de ellos                 |
 
 ---
 
@@ -951,14 +951,14 @@ Siempre extraé valores primitivos de los objetos request antes de disparar; no 
 
 ### Alternativas al fire-and-forget crudo
 
-| Alternativa                                       | Cuándo usarla                                                                    | Tradeoff                                          |
-| ------------------------------------------------- | --------------------------------------------------------------------------------- | -------------------------------------------------- |
-| **Await**                                         | Se necesita el resultado o la falla es inaceptable                                | Agrega latencia a la respuesta                      |
-| **Cola de mensajes** (Redis Streams, SQS, RabbitMQ) | Se requiere durabilidad, alto volumen, se necesita retry                        | Agrega infraestructura; sobrevive crashes           |
-| **`Promise.allSettled()`**                        | Querés correr múltiples tareas y responder cuando todas terminen, fallen o no     | Sigue siendo awaited — agrega la duración completa  |
-| **`setImmediate()`**                              | Diferir trabajo sync de CPU para después del I/O actual, no para trabajo async    | No ayuda con I/O async                              |
-| **Worker threads**                                | Trabajo pesado atado a CPU                                                        | Thread separado, overhead de copia de memoria       |
-| **p-limit / bottleneck**                          | F&F pero con tope de concurrencia (backpressure)                                  | Overhead chico; previene OOM bajo carga             |
+| Alternativa                                         | Cuándo usarla                                                                  | Tradeoff                                           |
+| --------------------------------------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------- |
+| **Await**                                           | Se necesita el resultado o la falla es inaceptable                             | Agrega latencia a la respuesta                     |
+| **Cola de mensajes** (Redis Streams, SQS, RabbitMQ) | Se requiere durabilidad, alto volumen, se necesita retry                       | Agrega infraestructura; sobrevive crashes          |
+| **`Promise.allSettled()`**                          | Querés correr múltiples tareas y responder cuando todas terminen, fallen o no  | Sigue siendo awaited — agrega la duración completa |
+| **`setImmediate()`**                                | Diferir trabajo sync de CPU para después del I/O actual, no para trabajo async | No ayuda con I/O async                             |
+| **Worker threads**                                  | Trabajo pesado atado a CPU                                                     | Thread separado, overhead de copia de memoria      |
+| **p-limit / bottleneck**                            | F&F pero con tope de concurrencia (backpressure)                               | Overhead chico; previene OOM bajo carga            |
 
 **Patrón de cola de mensajes** (la versión production-grade de la analítica de este proyecto):
 
@@ -1067,14 +1067,14 @@ while (true) {
 - Colas Standard: entrega at-least-once, orden best-effort, throughput casi ilimitado. Colas FIFO: procesamiento exactly-once + orden estricto por `MessageGroupId`, con tope de 3.000 msg/s (con batching).
 - Sin infraestructura propia que correr — AWS administra almacenamiento/escalado/durabilidad (replicación multi-AZ). A cambio: costo por request, latencia de red por llamada (vs. Redis usualmente co-ubicado), y una dependencia dura de que AWS esté arriba.
 
-|                  | Redis Streams                                                       | AWS SQS                                    | Kafka                                            |
-| ---------------- | -------------------------------------------------------------------- | ------------------------------------------- | ------------------------------------------------- |
-| Carga operativa  | Vos corrés/escalás Redis                                             | Cero — totalmente administrado              | Vos corrés/escalás brokers (o MSK)                |
-| Latencia         | Sub-ms, dentro de la VPC                                             | ~10-20ms por llamada API                    | Sub-ms a pocos ms                                 |
-| Durabilidad      | Solo tan durable como tu config de persistencia de Redis             | Durable por defecto (multi-AZ)              | Durable, replicado, retención larga               |
-| Orden            | Por stream, estricto                                                 | Solo colas FIFO, por grupo                  | Por partición, estricto                           |
-| Modelo de retry  | Manual (`XPENDING`/`XCLAIM`)                                         | Automático (visibility timeout + DLQ)       | Manual (manejo de offsets del consumidor)         |
-| Encaje acá       | El más barato si Redis ya está en el stack (lo está, en este proyecto) | Bueno si ya estás en AWS y querés cero ops | Overkill salvo que volumen/replay lo justifiquen |
+|                 | Redis Streams                                                          | AWS SQS                                    | Kafka                                            |
+| --------------- | ---------------------------------------------------------------------- | ------------------------------------------ | ------------------------------------------------ |
+| Carga operativa | Vos corrés/escalás Redis                                               | Cero — totalmente administrado             | Vos corrés/escalás brokers (o MSK)               |
+| Latencia        | Sub-ms, dentro de la VPC                                               | ~10-20ms por llamada API                   | Sub-ms a pocos ms                                |
+| Durabilidad     | Solo tan durable como tu config de persistencia de Redis               | Durable por defecto (multi-AZ)             | Durable, replicado, retención larga              |
+| Orden           | Por stream, estricto                                                   | Solo colas FIFO, por grupo                 | Por partición, estricto                          |
+| Modelo de retry | Manual (`XPENDING`/`XCLAIM`)                                           | Automático (visibility timeout + DLQ)      | Manual (manejo de offsets del consumidor)        |
+| Encaje acá      | El más barato si Redis ya está en el stack (lo está, en este proyecto) | Bueno si ya estás en AWS y querés cero ops | Overkill salvo que volumen/replay lo justifiquen |
 
 #### Qué es una Dead-Letter Queue (DLQ)
 
@@ -1137,14 +1137,14 @@ Redis Streams no tiene primitiva de DLQ built-in — lo más parecido es código
 
 ### Este proyecto vs. analítica de producción
 
-| Aspecto        | Este proyecto                | Producción                                  |
-| -------------- | ---------------------------- | -------------------------------------------- |
-| Mecanismo      | Insert F&F a MongoDB         | Emitir a cola de mensajes (Kafka/SQS)        |
-| Durabilidad    | Pierde lo en-vuelo en crash  | La cola persiste; se reprocesa al reiniciar  |
-| Backpressure   | Ninguno — sin límite         | Profundidad de cola + tasa del consumidor    |
-| Retry          | Ninguno — un solo intento    | El consumidor reintenta con backoff          |
-| Observabilidad | Counter `clickWriteErrors`   | Dead-letter queue + métricas de lag          |
-| Correctitud    | Aceptable: analítica         | Requerida: facturación, audit logs           |
+| Aspecto        | Este proyecto               | Producción                                  |
+| -------------- | --------------------------- | ------------------------------------------- |
+| Mecanismo      | Insert F&F a MongoDB        | Emitir a cola de mensajes (Kafka/SQS)       |
+| Durabilidad    | Pierde lo en-vuelo en crash | La cola persiste; se reprocesa al reiniciar |
+| Backpressure   | Ninguno — sin límite        | Profundidad de cola + tasa del consumidor   |
+| Retry          | Ninguno — un solo intento   | El consumidor reintenta con backoff         |
+| Observabilidad | Counter `clickWriteErrors`  | Dead-letter queue + métricas de lag         |
+| Correctitud    | Aceptable: analítica        | Requerida: facturación, audit logs          |
 
 El patrón F&F acá es correcto para un proyecto de aprendizaje / despliegue chico. A escala, reemplazarías el insert directo a MongoDB con un `redis.xadd()` a un Redis Stream (o topic de Kafka), y correrías un servicio consumidor de clicks separado.
 
@@ -1214,10 +1214,10 @@ estado      :  pending ───────────────────
 
 ### Alertas por síntoma vs por causa
 
-| Estilo      | Alerta sobre…           | Ejemplo                           | Pro / Contra                                                       |
-| ----------- | ----------------------- | --------------------------------- | ------------------------------------------------------------------ |
-| **Síntoma** | Dolor visible al usuario | `HighErrorRate`, `HighLatencyP99` | Siempre accionable; pocos pages falsos. Preferido.                 |
-| **Causa**   | Una condición interna   | `RedisDown`, `TargetDown`         | Root-cause más rápido, pero puede pagear por cosas que los usuarios nunca sienten. |
+| Estilo      | Alerta sobre…            | Ejemplo                           | Pro / Contra                                                                       |
+| ----------- | ------------------------ | --------------------------------- | ---------------------------------------------------------------------------------- |
+| **Síntoma** | Dolor visible al usuario | `HighErrorRate`, `HighLatencyP99` | Siempre accionable; pocos pages falsos. Preferido.                                 |
+| **Causa**   | Una condición interna    | `RedisDown`, `TargetDown`         | Root-cause más rápido, pero puede pagear por cosas que los usuarios nunca sienten. |
 
 Guía de Google SRE: **pagear por síntomas, diagnosticar con causas.** Demasiados pages por causa generan fatiga de alertas. Este proyecto mantiene las alertas por causa (`RedisDown`) en severidad más baja donde el cache degrada elegantemente (la DB sigue sirviendo), y trata `HighErrorRate` / `HighLatencyP99` como las señales reales.
 
@@ -1278,7 +1278,7 @@ t=5m   el timer de for: completaría... pero los 50 errores acaban de salir de l
 
 **Regla práctica:** para disparar una alerta con `for: D` y `rate[W]`, la condición debe mantenerse **al menos D**, lo que significa que los eventos subyacentes deben seguir ocurriendo durante ≳ D (no solo W). Para disparar `HighErrorRate` de verdad: sostener errores > 5 min (`node scripts/gen-errors.js 2000 5` ≈ 6.7 min de Mongo pausado), o bajar el `for:`. En contraste, `TargetDown`/`RedisDown` disparan confiablemente en `test-alerts.sh` porque su condición (`up==0`, `redis_circuit_open==1`) es _level-triggered_ — se mantiene verdadera todo el tiempo que la dependencia esté caída, no es una tasa que decae.
 
-### Cómo lo hace este proyecto
+### Cómo lo hace este proyecto (Alertas)
 
 `observability/prometheus.rules.yml` define seis alertas; `observability/prometheus.yml` cablea `rule_files` + un target de `alertmanagers`; `observability/alertmanager.yml` define un receiver `null` no-op (el challenge no tiene integración de paging real — demuestra el pipeline completo). El servicio `alertmanager` corre en `docker-compose.yml` (loopback `:9093`).
 
@@ -1309,21 +1309,21 @@ No podés graficar todo. Dos modelos mentales complementarios te dicen _qué_ se
 
 ### RED — para servicios orientados a requests (la app)
 
-| Letra        | Métrica                        | Este proyecto                                            |
-| ------------ | ------------------------------ | --------------------------------------------------------- |
-| **R**ate     | Requests por segundo           | `rate(http_requests_total[1m])` (paneles read vs write)    |
-| **E**rrors   | Requests fallidos por segundo  | `rate(http_requests_total{status=~"5.."}[1m])`             |
-| **D**uration | Distribución de latencia       | `histogram_quantile(…, http_duration_seconds_bucket)`      |
+| Letra        | Métrica                       | Este proyecto                                           |
+| ------------ | ----------------------------- | ------------------------------------------------------- |
+| **R**ate     | Requests por segundo          | `rate(http_requests_total[1m])` (paneles read vs write) |
+| **E**rrors   | Requests fallidos por segundo | `rate(http_requests_total{status=~"5.."}[1m])`          |
+| **D**uration | Distribución de latencia      | `histogram_quantile(…, http_duration_seconds_bucket)`   |
 
 RED responde: _"¿Mis usuarios están recibiendo respuestas rápidas y correctas?"_ Está orientado a síntomas — las mismas tres señales sobre las que disparan las mejores alertas (§8).
 
 ### USE — para recursos (CPU, memoria, disco, pools, el event loop)
 
-| Letra           | Significado                                              | Este proyecto                                                       |
-| --------------- | -------------------------------------------------------- | -------------------------------------------------------------------- |
-| **U**tilization | % del tiempo que el recurso está ocupado                 | CPU vía `collectDefaultMetrics`, límite `cpus` del contenedor         |
+| Letra           | Significado                                                | Este proyecto                                                         |
+| --------------- | ---------------------------------------------------------- | --------------------------------------------------------------------- |
+| **U**tilization | % del tiempo que el recurso está ocupado                   | CPU vía `collectDefaultMetrics`, límite `cpus` del contenedor         |
 | **S**aturation  | Trabajo encolado/esperando que el recurso no puede atender | **lag del event loop** (`nodejs_eventloop_lag_*`), RSS vs `mem_limit` |
-| **E**rrors      | Eventos de error del recurso                             | `redis_errors_total`, `click_write_errors_total`                      |
+| **E**rrors      | Eventos de error del recurso                               | `redis_errors_total`, `click_write_errors_total`                      |
 
 USE responde: _"¿Algún recurso es el cuello de botella?"_
 
@@ -1331,7 +1331,7 @@ USE responde: _"¿Algún recurso es el cuello de botella?"_
 
 Node es single-threaded. Si un handler sincrónico acapara la CPU, el event loop no puede atender los callbacks de I/O pendientes — se encolan. El **lag del event loop** mide exactamente esa demora: la brecha entre cuándo un timer _debería_ disparar y cuándo _realmente_ dispara. Lag creciente significa que el proceso está saturado aunque el CPU% se vea moderado. Es el clásico page de Node a las 3am, por eso se agregó un panel para `nodejs_eventloop_lag_p99_seconds` (viene gratis con `collectDefaultMetrics`, solo que no estaba graficado).
 
-### Cómo lo hace este proyecto
+### Cómo lo hace este proyecto (RED/USE)
 
 `src/observability/metrics.ts` registra las métricas RED explícitamente; `collectDefaultMetrics` provee las señales USE (lag del event loop, RSS, GC, CPU). El dashboard de Grafana (`observability/grafana/dashboards/url-shortener.json`) ahora tiene paneles para lag p99 del event loop y RSS del proceso junto a los paneles RED existentes.
 
@@ -1348,10 +1348,10 @@ Node es single-threaded. Si un handler sincrónico acapara la CPU, el event loop
 
 Estos dos health checks responden **preguntas distintas**, y confundirlos causa outages.
 
-| Probe         | Pregunta                                            | Si falla, el orquestador…                              | ¿Chequea dependencias? |
-| ------------- | ---------------------------------------------------- | ------------------------------------------------------- | ---------------------- |
-| **Liveness**  | "¿Este proceso está vivo / no deadlockeado?"         | **Reinicia el contenedor**                              | **No**                 |
-| **Readiness** | "¿Esta instancia puede servir tráfico ahora mismo?"  | **La saca del load balancer** (sin reinicio)            | **Sí**                 |
+| Probe         | Pregunta                                            | Si falla, el orquestador…                    | ¿Chequea dependencias? |
+| ------------- | --------------------------------------------------- | -------------------------------------------- | ---------------------- |
+| **Liveness**  | "¿Este proceso está vivo / no deadlockeado?"        | **Reinicia el contenedor**                   | **No**                 |
+| **Readiness** | "¿Esta instancia puede servir tráfico ahora mismo?" | **La saca del load balancer** (sin reinicio) | **Sí**                 |
 
 ### La trampa de la tormenta de reinicios
 
@@ -1368,7 +1368,7 @@ Mongo tiene un blip
 
 La app estaba **bien** — solo su dependencia tuvo un hipo. Reiniciarla no arregló nada y empeoró todo. El liveness no debe depender de **nada externo**. El readiness es donde van los chequeos de dependencias: un 503 ahí solo deja de rutear tráfico nuevo a esa instancia hasta que Mongo se recupere — sin reinicio, sin tormenta.
 
-### Cómo lo hace este proyecto
+### Cómo lo hace este proyecto (Probes)
 
 `src/server.ts`:
 
@@ -1418,7 +1418,7 @@ Esto es una **bomba de cardinalidad**. Un bot escaneando paths aleatorios podrí
 3. **Bucketeá dimensiones de alta cardinalidad.** `status_class="2xx"` (4 valores) en vez de, o junto a, el `status` crudo solo donde el valor crudo se necesite genuinamente.
 4. **Los datos de alta cardinalidad van en logs/trazas,** no en métricas. (Ver §12 — para eso está el `X-Request-Id` en Loki.)
 
-### Cómo lo hace este proyecto
+### Cómo lo hace este proyecto (Cardinalidad)
 
 `src/middleware/metrics.ts`:
 
@@ -1439,9 +1439,9 @@ Esto es una **bomba de cardinalidad**. Un bot escaneando paths aleatorios podrí
 
 Los "tres pilares de la observabilidad" responden preguntas distintas:
 
-| Pilar        | Responde                                        | Cardinalidad          | Este proyecto                        |
-| ------------ | ------------------------------------------------ | --------------------- | ------------------------------------ |
-| **Métricas** | "¿Algo anda mal, y cuánto?"                     | Baja (labels acotados) | Prometheus                           |
+| Pilar        | Responde                                         | Cardinalidad           | Este proyecto                        |
+| ------------ | ------------------------------------------------ | ---------------------- | ------------------------------------ |
+| **Métricas** | "¿Algo anda mal, y cuánto?"                      | Baja (labels acotados) | Prometheus                           |
 | **Logs**     | "¿Qué pasó exactamente en este request?"         | Alta (formato libre)   | pino → Loki                          |
 | **Trazas**   | "¿Dónde se fue el tiempo a través de servicios?" | Alta (por span)        | (no implementado — un solo servicio) |
 
@@ -1459,7 +1459,7 @@ Loki:  {app="app1"} |= "7f3a…"                   ← las líneas de log exacta
 
 Para un **servicio único**, un request ID end-to-end es el 80% barato del tracing distribuido. El tracing completo (OpenTelemetry, propagando un contexto de traza a través de saltos entre servicios) importa cuando hacés fan-out a múltiples servicios — es el próximo paso natural, no necesario acá.
 
-### Cómo lo hace este proyecto
+### Cómo lo hace este proyecto (Correlación)
 
 - `src/middleware/logger.ts` — el `genReqId` de `pino-http` asigna un UUID `req.id` a cada request; cada línea de log de ese request lo lleva.
 - `src/server.ts` — un middleware setea `res.setHeader('X-Request-Id', req.id)` para que el id sea visible a los clientes y en trazas de red. Corre **después** del logger (que crea el id) y antes de los route handlers.
@@ -1522,7 +1522,7 @@ ports:
   - "127.0.0.1:27017:27017" # localhost only, not the world
 ```
 
-### Cómo lo hace este proyecto
+### Cómo lo hace este proyecto (Hardening)
 
 - `Dockerfile`: `chown` + `USER node` en el stage de runtime (non-root).
 - `docker-compose.yml`: `mem_limit`/`cpus` en cada servicio; Mongo, Redis, Prometheus, Alertmanager y los exporters bindeados a `127.0.0.1` (solo NGINX `:80` y Grafana `:3001` miran al mundo); la contraseña admin de Grafana ya no defaultea a `admin`.
@@ -1549,11 +1549,11 @@ Una confusión común: _"si Grafana ya muestra los datos, ¿el endpoint `/metric
 └──────────────┘                     └──────────────┘                  └──────────┘
 ```
 
-| Capa           | Rol                                                       | ¿Tiene historia?        | ¿Genera datos?      |
-| -------------- | ---------------------------------------------------------- | ----------------------- | ------------------- |
-| app `/metrics` | **produce** los números (counters/gauges in-process)       | No — instantáneo        | Sí (el origen)      |
-| Prometheus     | **scrapea y almacena**                                     | Sí (TSDB)               | No — solo registra  |
-| Grafana        | **consulta y dibuja**                                      | No (lee de Prometheus)  | **No**              |
+| Capa           | Rol                                                  | ¿Tiene historia?       | ¿Genera datos?     |
+| -------------- | ---------------------------------------------------- | ---------------------- | ------------------ |
+| app `/metrics` | **produce** los números (counters/gauges in-process) | No — instantáneo       | Sí (el origen)     |
+| Prometheus     | **scrapea y almacena**                               | Sí (TSDB)              | No — solo registra |
+| Grafana        | **consulta y dibuja**                                | No (lee de Prometheus) | **No**             |
 
 Grafana no renderiza _nada propio_. Matá `/metrics` → Prometheus scrapea vacío → Grafana queda en blanco. "Grafana muestra los mismos datos" es todo el punto: son _esos_ datos, almacenados y graficados. Golpear `/metrics` directo es solo para debugging ("¿la app siquiera está exponiendo el counter X?") sin el lag de scrape→almacenar→renderizar.
 
@@ -1563,14 +1563,14 @@ Prometheus **pullea** (scrapea un endpoint HTTP) en vez de que la app **pushee**
 
 ### Dos familias en `/metrics`
 
-| Familia                          | Ejemplos                                                                                                                | Método                                     | Por qué                                        |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------- | ----------------------------------------------- |
-| **Métricas de app** (explícitas) | `http_requests_total`, `cache_hits_total`, `redis_circuit_open`                                                         | definidas en `src/observability/metrics.ts` | RED + señales de dominio                        |
-| **Métricas default** (auto)      | `process_resident_memory_bytes`, `nodejs_eventloop_lag_p99_seconds`, `nodejs_gc_duration_seconds`, `process_open_fds`   | `collectDefaultMetrics()`                   | USE/saturación — _por qué_ el proceso está lento |
+| Familia                          | Ejemplos                                                                                                              | Método                                      | Por qué                                          |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ------------------------------------------------ |
+| **Métricas de app** (explícitas) | `http_requests_total`, `cache_hits_total`, `redis_circuit_open`                                                       | definidas en `src/observability/metrics.ts` | RED + señales de dominio                         |
+| **Métricas default** (auto)      | `process_resident_memory_bytes`, `nodejs_eventloop_lag_p99_seconds`, `nodejs_gc_duration_seconds`, `process_open_fds` | `collectDefaultMetrics()`                   | USE/saturación — _por qué_ el proceso está lento |
 
 El bloque `process_*` / `nodejs_*` **no es ruido** — es la vista de recursos (USE, §9) que las métricas de app no pueden proveer: lag del event loop (loop bloqueado), RSS (fuga), pausas de GC (latencia), cantidad de fds (fuga de conexiones). Los paneles de lag del event loop y RSS del dashboard leen exactamente estas.
 
-### Cómo lo hace este proyecto
+### Cómo lo hace este proyecto (Métricas)
 
 `src/observability/metrics.ts` construye un registry de `prom-client` (`collectDefaultMetrics` para la familia USE + métricas RED/de dominio explícitas). `src/server.ts` lo sirve en `/metrics` detrás de un bearer token. `observability/prometheus.yml` scrapea `app1:3000` cada 15s; `observability/grafana/provisioning/datasources` apunta Grafana a Prometheus.
 
@@ -1591,13 +1591,13 @@ El **WHATWG URL Standard** (`https://url.spec.whatwg.org/`) es la especificació
 
 Objetivo de diseño clave: **ser permisivo en lo que aceptás, pero producir una salida canónica**. Esto significa que el parser arregla silenciosamente muchos inputs en vez de rechazarlos:
 
-| Input                            | `new URL(input).href`         | Qué pasó                                    |
-| -------------------------------- | ----------------------------- | -------------------------------------------- |
-| `"https://EXAMPLE.COM/Path"`     | `"https://example.com/Path"`  | host pasado a minúsculas                     |
-| `"https://example.com/a%20b"`    | `"https://example.com/a%20b"` | percent-encoding preservado                  |
-| `"https://example.com/a b"`      | `"https://example.com/a%20b"` | espacio en el path codificado                |
-| `"  https://example.com  "`      | `"https://example.com/"`      | **whitespace inicial/final eliminado**       |
-| `"https://example.com/./a/../b"` | `"https://example.com/b"`     | path normalizado                             |
+| Input                            | `new URL(input).href`         | Qué pasó                               |
+| -------------------------------- | ----------------------------- | -------------------------------------- |
+| `"https://EXAMPLE.COM/Path"`     | `"https://example.com/Path"`  | host pasado a minúsculas               |
+| `"https://example.com/a%20b"`    | `"https://example.com/a%20b"` | percent-encoding preservado            |
+| `"https://example.com/a b"`      | `"https://example.com/a%20b"` | espacio en el path codificado          |
+| `"  https://example.com  "`      | `"https://example.com/"`      | **whitespace inicial/final eliminado** |
+| `"https://example.com/./a/../b"` | `"https://example.com/b"`     | path normalizado                       |
 
 Las últimas dos filas son las críticas. El parser elimina el whitespace circundante y resuelve los dot-segments antes incluso de empezar a interpretar los componentes de la URL.
 
@@ -1669,7 +1669,7 @@ La normalización silenciosa del parser WHATWG es útil en un navegador (UX indu
 
 Este proyecto se queda en `.trim()` — alcanza para el caso de dedup y evita reescribir URLs de formas inesperadas (ej. normalizar `%2F` en paths).
 
-### Cómo lo hace este proyecto
+### Cómo lo hace este proyecto (Normalización)
 
 `src/utils/validators.ts` — `.trim()` agregado antes de `.url()` en `longUrlSchema`.
 `src/utils/validators.test.ts` — el test verifica que una URL con whitespace circundante produce el mismo valor `.data` que la URL limpia, confirmando consistencia de dedup.
@@ -1689,12 +1689,12 @@ Este proyecto se queda en `.trim()` — alcanza para el caso de dedup y evita re
 
 Tres tipos de métrica pueden registrar una duración:
 
-| Tipo          | Qué guarda                          | ¿Puede calcular percentiles?  | Memoria por métrica      |
-| ------------- | ------------------------------------ | ----------------------------- | ------------------------- |
-| **Gauge**     | un valor actual                      | No                            | 1 serie                   |
-| **Counter**   | total acumulado                      | No                            | 1 serie                   |
-| **Histogram** | conteo de observaciones por bucket   | Sí (aproximado)               | 1 serie por bucket        |
-| **Summary**   | cuantiles precalculados in-process   | Sí (exacto, ventana fija)     | 1 serie por cuantil       |
+| Tipo          | Qué guarda                         | ¿Puede calcular percentiles? | Memoria por métrica |
+| ------------- | ---------------------------------- | ---------------------------- | ------------------- |
+| **Gauge**     | un valor actual                    | No                           | 1 serie             |
+| **Counter**   | total acumulado                    | No                           | 1 serie             |
+| **Histogram** | conteo de observaciones por bucket | Sí (aproximado)              | 1 serie por bucket  |
+| **Summary**   | cuantiles precalculados in-process | Sí (exacto, ventana fija)    | 1 serie por cuantil |
 
 Los histogramas ganan para latencia porque:
 
@@ -1778,8 +1778,8 @@ histogram_quantile(0.99,
 
 La alerta `HighErrorRate` usa `http_requests_total` (el counter, que mantiene el `status` crudo). El `status_class` del histograma es aparte — está para el **panel de SLO** de latencia, no para la alerta de tasa de error. Las dos métricas sirven propósitos distintos:
 
-| Métrica                 | Label usado    | Propósito                                              |
-| ----------------------- | -------------- | ------------------------------------------------------- |
+| Métrica                 | Label usado    | Propósito                                                |
+| ----------------------- | -------------- | -------------------------------------------------------- |
 | `http_requests_total`   | `status` crudo | alerta de tasa de error — `rate(...{status=~"5.."}[5m])` |
 | `http_duration_seconds` | `status_class` | SLO de latencia — `histogram_quantile(0.99, ...)`        |
 
@@ -1787,15 +1787,15 @@ La alerta `HighErrorRate` usa `http_requests_total` (el counter, que mantiene el
 
 Tres paneles nuevos agregados en esta sesión:
 
-| Panel                    | Métrica                            | Por qué                                                                  |
-| ------------------------ | ---------------------------------- | ------------------------------------------------------------------------ |
-| Estado del circuito Redis | `redis_circuit_open`              | gauge binario: 1=roto, 0=ok — degradación visible al instante             |
-| Lag p99 del event loop   | `nodejs_eventloop_lag_p99_seconds` | señal de saturación — loop bloqueado → respuesta lenta aun con DB rápida  |
-| RSS del proceso          | `process_resident_memory_bytes`    | detección de fugas — RSS creciendo por horas = fuga de memoria            |
+| Panel                     | Métrica                            | Por qué                                                                  |
+| ------------------------- | ---------------------------------- | ------------------------------------------------------------------------ |
+| Estado del circuito Redis | `redis_circuit_open`               | gauge binario: 1=roto, 0=ok — degradación visible al instante            |
+| Lag p99 del event loop    | `nodejs_eventloop_lag_p99_seconds` | señal de saturación — loop bloqueado → respuesta lenta aun con DB rápida |
+| RSS del proceso           | `process_resident_memory_bytes`    | detección de fugas — RSS creciendo por horas = fuga de memoria           |
 
 El filtro del panel de logs de error en Loki se cambió de `{level="50"}` (solo error) a `{level=~"40|50"}` (warn + error). pino emite niveles numéricos: `30`=info, `40`=warn, `50`=error. Las fallas de escritura de clicks loguean en `warn` (40) — serían invisibles con el filtro viejo.
 
-### Cómo lo hace este proyecto
+### Cómo lo hace este proyecto (Histogramas)
 
 `src/observability/metrics.ts` — el Histogram `httpDuration` definido con el array de buckets extendido y `status_class` en `labelNames`.
 `src/middleware/metrics.ts` — el helper `statusClass(code)` mapea `Math.floor(code/100)` al string `"2xx"`. `routeLabel(req)` devuelve `req.route?.path ?? 'unmatched'`.
@@ -1863,12 +1863,12 @@ Orientado a eventos = los componentes se comunican **publicando hechos sobre lo 
 
 ### Atajo de decisión
 
-| Pregunta                                                                                    | Se inclina hacia                                                                                    |
-| -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| ¿Equipo chico, límites de dominio poco claros, necesitás transacciones?                      | Monolito                                                                                              |
-| ¿Necesitás escalado/deploys independientes por dominio bien entendido, múltiples equipos?    | Microservicios                                                                                        |
-| ¿El productor no debería esperar ni conocer a los consumidores; necesitás fan-out, buffering, replay? | Orientado a eventos                                                                          |
-| ¿Ninguno de los dolores de arriba existe todavía?                                            | Monolito (default) — partí cuando aparezca un dolor _específico y medido_, no especulativamente       |
+| Pregunta                                                                                              | Se inclina hacia                                                                                |
+| ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| ¿Equipo chico, límites de dominio poco claros, necesitás transacciones?                               | Monolito                                                                                        |
+| ¿Necesitás escalado/deploys independientes por dominio bien entendido, múltiples equipos?             | Microservicios                                                                                  |
+| ¿El productor no debería esperar ni conocer a los consumidores; necesitás fan-out, buffering, replay? | Orientado a eventos                                                                             |
+| ¿Ninguno de los dolores de arriba existe todavía?                                                     | Monolito (default) — partí cuando aparezca un dolor _específico y medido_, no especulativamente |
 
 El patrón real más fuerte: **empezar monolito (request/response), extraer microservicios solo por las costuras donde realmente sentiste el dolor** (un módulo específico escalando distinto, un equipo específico bloqueado en releases), e **introducir eventos solo donde el desacople específicamente paga** (fan-out a múltiples consumidores futuros desconocidos, absorber picos de carga, necesidades de auditoría/replay) — no como estilo de comunicación default en todos lados.
 
@@ -1913,29 +1913,29 @@ La idea central: los clientes ven **una** superficie de API; el gateway esconde 
 
 **Responsabilidades típicas, de más a menos universales:**
 
-| Responsabilidad             | Qué significa                                                              |
-| --------------------------- | --------------------------------------------------------------------------- |
-| Ruteo                       | `/orders/*` → orders-service, `/users/*` → users-service                    |
-| Terminación TLS             | El gateway tiene el certificado; el tráfico interno puede ser HTTP plano en una red privada |
-| Rate limiting / cuotas      | Límites por cliente o por ruta aplicados antes de que el request llegue al código de la app |
-| AuthN/AuthZ                 | Validar API keys / JWT / token OAuth una vez, en el borde                    |
-| Transformación req/res      | Reescribir headers, remodelar payloads, traducción de protocolo (REST↔gRPC) |
-| Agregación                  | Una llamada del cliente hace fan-out a N llamadas backend, el gateway mergea la respuesta |
-| Observabilidad              | Punto central para emitir access logs / métricas / spans de trazas consistentes |
-| Resiliencia                 | Circuit breaking, retries, timeouts aplicados uniformemente en el borde     |
+| Responsabilidad        | Qué significa                                                                               |
+| ---------------------- | ------------------------------------------------------------------------------------------- |
+| Ruteo                  | `/orders/*` → orders-service, `/users/*` → users-service                                    |
+| Terminación TLS        | El gateway tiene el certificado; el tráfico interno puede ser HTTP plano en una red privada |
+| Rate limiting / cuotas | Límites por cliente o por ruta aplicados antes de que el request llegue al código de la app |
+| AuthN/AuthZ            | Validar API keys / JWT / token OAuth una vez, en el borde                                   |
+| Transformación req/res | Reescribir headers, remodelar payloads, traducción de protocolo (REST↔gRPC)                 |
+| Agregación             | Una llamada del cliente hace fan-out a N llamadas backend, el gateway mergea la respuesta   |
+| Observabilidad         | Punto central para emitir access logs / métricas / spans de trazas consistentes             |
+| Resiliencia            | Circuit breaking, retries, timeouts aplicados uniformemente en el borde                     |
 
 ### API Gateway vs reverse proxy vs load balancer vs service mesh
 
 Estos se confunden constantemente — se solapan pero resuelven problemas de forma distinta:
 
-| Herramienta         | Trabajo primario                                     | Alcance                          | Ejemplo                     |
-| ------------------- | ----------------------------------------------------- | --------------------------------- | ---------------------------- |
-| **Reverse proxy**   | Reenviar un request a un backend, esconder la topología del backend | Genérico — cualquier protocolo/propósito | NGINX, HAProxy (crudo) |
-| **Load balancer**   | Distribuir requests entre N réplicas de un servicio  | Un servicio, muchas instancias    | NGINX `upstream`, ELB        |
-| **API Gateway**     | Punto de entrada único de borde para *muchos servicios distintos*, con preocupaciones específicas de API (auth, cuotas, transformación, agregación) | Toda la superficie de API, muchos servicios | Kong, AWS API Gateway, Envoy Gateway |
-| **Service mesh**    | Tráfico este-oeste *entre* servicios internos (no de cara al cliente) | Servicio-a-servicio interno | Istio, Linkerd               |
+| Herramienta       | Trabajo primario                                                                                                                                    | Alcance                                     | Ejemplo                              |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ------------------------------------ |
+| **Reverse proxy** | Reenviar un request a un backend, esconder la topología del backend                                                                                 | Genérico — cualquier protocolo/propósito    | NGINX, HAProxy (crudo)               |
+| **Load balancer** | Distribuir requests entre N réplicas de un servicio                                                                                                 | Un servicio, muchas instancias              | NGINX `upstream`, ELB                |
+| **API Gateway**   | Punto de entrada único de borde para _muchos servicios distintos_, con preocupaciones específicas de API (auth, cuotas, transformación, agregación) | Toda la superficie de API, muchos servicios | Kong, AWS API Gateway, Envoy Gateway |
+| **Service mesh**  | Tráfico este-oeste _entre_ servicios internos (no de cara al cliente)                                                                               | Servicio-a-servicio interno                 | Istio, Linkerd                       |
 
-Un reverse proxy es el *mecanismo*; un API Gateway es un reverse proxy con **políticas con forma de API** encima (auth, cuotas, transformaciones por ruta, agregación). Un load balancer es usualmente un ingrediente *dentro* de un gateway (rutear a réplicas sanas), no un reemplazo. Un service mesh resuelve la misma clase de preocupaciones transversales (retries, mTLS, observabilidad) pero para el tráfico *entre* tus propios servicios, no el borde de cara al cliente — los dos se usan frecuentemente juntos: gateway en el borde, mesh internamente.
+Un reverse proxy es el _mecanismo_; un API Gateway es un reverse proxy con **políticas con forma de API** encima (auth, cuotas, transformaciones por ruta, agregación). Un load balancer es usualmente un ingrediente _dentro_ de un gateway (rutear a réplicas sanas), no un reemplazo. Un service mesh resuelve la misma clase de preocupaciones transversales (retries, mTLS, observabilidad) pero para el tráfico _entre_ tus propios servicios, no el borde de cara al cliente — los dos se usan frecuentemente juntos: gateway en el borde, mesh internamente.
 
 ### Patrones centrales
 
@@ -1956,39 +1956,39 @@ GET /dashboard
 
 **Gateway Offloading** — mover las preocupaciones transversales fuera de cada servicio y al gateway una sola vez: terminación TLS, validación de tokens de auth, rate limiting, compresión, headers CORS. Los servicios confían en que el tráfico que les llega ya pasó esos chequeos.
 
-**Backend For Frontend (BFF)** — en vez de un gateway genérico para todos los clientes, correr un gateway *por tipo de cliente* (web-BFF, mobile-BFF), cada uno moldeando/agregando respuestas de forma distinta para las necesidades de ese cliente (mobile quiere payloads más chicos, web quiere más detalle). Evita que el contrato de un solo gateway se convierta en un compromiso de mínimo común denominador entre clientes muy distintos.
+**Backend For Frontend (BFF)** — en vez de un gateway genérico para todos los clientes, correr un gateway _por tipo de cliente_ (web-BFF, mobile-BFF), cada uno moldeando/agregando respuestas de forma distinta para las necesidades de ese cliente (mobile quiere payloads más chicos, web quiere más detalle). Evita que el contrato de un solo gateway se convierta en un compromiso de mínimo común denominador entre clientes muy distintos.
 
 ### Cuándo necesitás uno
 
-| Señal                                                                        | Se inclina hacia                                |
-| ----------------------------------------------------------------------------- | ------------------------------------------------ |
-| Un servicio backend, un tipo de cliente                                       | Un reverse proxy simple alcanza (este proyecto)   |
-| Múltiples servicios backend, necesitás una superficie de API pública consistente | API Gateway                                    |
-| Cada servicio reimplementando su propio auth/rate-limit/logging               | API Gateway (offloadearlo una vez)               |
-| El cliente necesita datos ensamblados de varios servicios en un round trip    | API Gateway con agregación, o BFF                |
-| Formas de cliente muy distintas (mobile vs web vs API de partners)            | BFF por tipo de cliente                          |
-| Las preocupaciones transversales están entre servicios *internos*, no de cara al cliente | Service mesh, no un gateway            |
+| Señal                                                                                    | Se inclina hacia                                |
+| ---------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| Un servicio backend, un tipo de cliente                                                  | Un reverse proxy simple alcanza (este proyecto) |
+| Múltiples servicios backend, necesitás una superficie de API pública consistente         | API Gateway                                     |
+| Cada servicio reimplementando su propio auth/rate-limit/logging                          | API Gateway (offloadearlo una vez)              |
+| El cliente necesita datos ensamblados de varios servicios en un round trip               | API Gateway con agregación, o BFF               |
+| Formas de cliente muy distintas (mobile vs web vs API de partners)                       | BFF por tipo de cliente                         |
+| Las preocupaciones transversales están entre servicios _internos_, no de cara al cliente | Service mesh, no un gateway                     |
 
 ### Implementaciones en producción
 
-| Herramienta                                                          | Notas                                                                  |
-| -------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| [Kong](https://konghq.com/products/kong-gateway)                     | NGINX + ecosistema de plugins Lua; self-hosted o cloud                  |
-| [AWS API Gateway](https://aws.amazon.com/api-gateway/)               | Administrado, se integra con Lambda/ALB; pago por request               |
-| [Envoy Gateway](https://gateway.envoyproxy.io/) / [Envoy](https://www.envoyproxy.io/) | Proxy L7 de alto rendimiento; también el data plane dentro de Istio |
-| [Apigee](https://cloud.google.com/apigee)                            | API management empresarial de Google (analítica, monetización, cuotas)  |
-| [Traefik](https://traefik.io/traefik/)                               | Auto-descubre backends vía labels de Docker/Kubernetes                  |
-| [Netflix Zuul](https://github.com/Netflix/zuul)                      | Gateway JVM; mayormente superado por Spring Cloud Gateway               |
+| Herramienta                                                                           | Notas                                                                  |
+| ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| [Kong](https://konghq.com/products/kong-gateway)                                      | NGINX + ecosistema de plugins Lua; self-hosted o cloud                 |
+| [AWS API Gateway](https://aws.amazon.com/api-gateway/)                                | Administrado, se integra con Lambda/ALB; pago por request              |
+| [Envoy Gateway](https://gateway.envoyproxy.io/) / [Envoy](https://www.envoyproxy.io/) | Proxy L7 de alto rendimiento; también el data plane dentro de Istio    |
+| [Apigee](https://cloud.google.com/apigee)                                             | API management empresarial de Google (analítica, monetización, cuotas) |
+| [Traefik](https://traefik.io/traefik/)                                                | Auto-descubre backends vía labels de Docker/Kubernetes                 |
+| [Netflix Zuul](https://github.com/Netflix/zuul)                                       | Gateway JVM; mayormente superado por Spring Cloud Gateway              |
 
 ### Tradeoffs
 
-| Preocupación             | Sin gateway                                       | Con gateway                                                |
-| ------------------------ | -------------------------------------------------- | ------------------------------------------------------------ |
-| Código transversal       | Duplicado en cada servicio                         | Escrito una vez, centralmente                                 |
-| Punto único de falla     | N/A                                                | Gateway caído = todo caído (debe ser HA, replicado)           |
-| Latencia                 | Cliente→servicio directo                           | Un salto de red extra                                         |
-| Complejidad operativa    | Cada servicio simple                               | La config/deploy del gateway es una cosa más que correr y monitorear |
-| Simplicidad del cliente  | El cliente debe conocer N ubicaciones/contratos    | El cliente ve una superficie de API                           |
+| Preocupación            | Sin gateway                                     | Con gateway                                                          |
+| ----------------------- | ----------------------------------------------- | -------------------------------------------------------------------- |
+| Código transversal      | Duplicado en cada servicio                      | Escrito una vez, centralmente                                        |
+| Punto único de falla    | N/A                                             | Gateway caído = todo caído (debe ser HA, replicado)                  |
+| Latencia                | Cliente→servicio directo                        | Un salto de red extra                                                |
+| Complejidad operativa   | Cada servicio simple                            | La config/deploy del gateway es una cosa más que correr y monitorear |
+| Simplicidad del cliente | El cliente debe conocer N ubicaciones/contratos | El cliente ve una superficie de API                                  |
 
 ### Cómo encaja este proyecto
 
@@ -2020,12 +2020,12 @@ Lo que deliberadamente **no** hace (porque todavía no lo necesita): validación
 
 **NoSQL:** paraguas para todo lo que no es relacional. No es una sola cosa — son cuatro familias con tradeoffs muy distintos:
 
-| Familia            | Modelo                                  | Ejemplos                    | Caso típico                                    |
-| ------------------ | ---------------------------------------- | ---------------------------- | ----------------------------------------------- |
-| **Documento**      | JSON/BSON anidado, esquema flexible      | MongoDB, CouchDB             | Entidades autocontenidas (perfil, catálogo)     |
-| **Clave/valor**    | `clave → blob opaco`                     | Redis, DynamoDB (en su base) | Cache, sesiones, lookups por ID                 |
-| **Columnar ancho** | Filas con millones de columnas dispersas | Cassandra, HBase             | Series temporales, escrituras masivas           |
-| **Grafo**          | Nodos + aristas                          | Neo4j, Neptune               | Relaciones profundas (red social, fraude)       |
+| Familia            | Modelo                                   | Ejemplos                     | Caso típico                                 |
+| ------------------ | ---------------------------------------- | ---------------------------- | ------------------------------------------- |
+| **Documento**      | JSON/BSON anidado, esquema flexible      | MongoDB, CouchDB             | Entidades autocontenidas (perfil, catálogo) |
+| **Clave/valor**    | `clave → blob opaco`                     | Redis, DynamoDB (en su base) | Cache, sesiones, lookups por ID             |
+| **Columnar ancho** | Filas con millones de columnas dispersas | Cassandra, HBase             | Series temporales, escrituras masivas       |
+| **Grafo**          | Nodos + aristas                          | Neo4j, Neptune               | Relaciones profundas (red social, fraude)   |
 
 ### La diferencia estructural real
 
@@ -2082,13 +2082,13 @@ Este proyecto usa MongoDB con un patrón de acceso 100% clave→valor (`shortUrl
 
 ### Features que aparecen en entrevistas
 
-| Feature                | Qué es                                                                          |
-| ---------------------- | -------------------------------------------------------------------------------- |
-| **DynamoDB Streams**   | Log de cambios (CDC) de la tabla — dispara Lambdas por cada insert/update/delete; es el hook natural hacia arquitectura de eventos (§28) |
-| **TTL**                | Expiración automática de ítems por atributo timestamp — gratis, para sesiones/tokens |
-| **Transacciones**      | `TransactWriteItems` — ACID hasta 100 ítems, con costo doble                      |
-| **DAX**                | Cache in-memory administrado delante de Dynamo (microsegundos) — el "Redis administrado" de Dynamo |
-| **Consistencia**       | Lecturas eventually consistent por defecto; strongly consistent bajo demanda (2× costo, solo sobre la tabla base, no GSIs) |
+| Feature              | Qué es                                                                                                                                   |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **DynamoDB Streams** | Log de cambios (CDC) de la tabla — dispara Lambdas por cada insert/update/delete; es el hook natural hacia arquitectura de eventos (§28) |
+| **TTL**              | Expiración automática de ítems por atributo timestamp — gratis, para sesiones/tokens                                                     |
+| **Transacciones**    | `TransactWriteItems` — ACID hasta 100 ítems, con costo doble                                                                             |
+| **DAX**              | Cache in-memory administrado delante de Dynamo (microsegundos) — el "Redis administrado" de Dynamo                                       |
+| **Consistencia**     | Lecturas eventually consistent por defecto; strongly consistent bajo demanda (2× costo, solo sobre la tabla base, no GSIs)               |
 
 ### Cuándo usarlo / cuándo no
 
@@ -2125,12 +2125,12 @@ Por eso buscar "negro" en 100 millones de documentos es O(1) al término + merge
 
 ### Para qué se usa
 
-| Caso                       | Por qué OpenSearch                                                   |
-| -------------------------- | --------------------------------------------------------------------- |
-| **Full-text search**       | Buscador de productos/documentos con relevancia, typos, facetas       |
-| **Log analytics**          | El stack ELK/OpenSearch: Logstash/Fluentd → OpenSearch → Dashboards (la alternativa pesada a Loki de §12) |
-| **Agregaciones**           | Facetas y métricas sobre millones de docs en tiempo casi real          |
-| **Observabilidad/SIEM**    | Trazas, eventos de seguridad, detección de anomalías                   |
+| Caso                    | Por qué OpenSearch                                                                                        |
+| ----------------------- | --------------------------------------------------------------------------------------------------------- |
+| **Full-text search**    | Buscador de productos/documentos con relevancia, typos, facetas                                           |
+| **Log analytics**       | El stack ELK/OpenSearch: Logstash/Fluentd → OpenSearch → Dashboards (la alternativa pesada a Loki de §12) |
+| **Agregaciones**        | Facetas y métricas sobre millones de docs en tiempo casi real                                             |
+| **Observabilidad/SIEM** | Trazas, eventos de seguridad, detección de anomalías                                                      |
 
 ### La regla de oro: no es fuente de verdad
 
@@ -2288,12 +2288,12 @@ El escenario de cascada de §3 empieza exactamente acá: dependencia lenta → c
 
 ### Hash ≠ cifrado (la distinción que define la entrevista)
 
-| Propiedad         | **Hash**                                             | **Cifrado**                                      |
-| ----------------- | ----------------------------------------------------- | ------------------------------------------------- |
-| Dirección         | **Una vía** — no se puede revertir                    | **Dos vías** — se descifra con la clave           |
-| Salida            | Tamaño fijo (SHA-256 → 32 bytes) sin importar el input | Tamaño proporcional al input                     |
-| Necesita clave    | No (el hash con clave es HMAC)                        | Sí — la seguridad vive en la clave                |
-| Pregunta que responde | "¿Es este dato **el mismo** que aquel?"            | "¿Cómo **oculto** esto y lo recupero después?"    |
+| Propiedad             | **Hash**                                               | **Cifrado**                                    |
+| --------------------- | ------------------------------------------------------ | ---------------------------------------------- |
+| Dirección             | **Una vía** — no se puede revertir                     | **Dos vías** — se descifra con la clave        |
+| Salida                | Tamaño fijo (SHA-256 → 32 bytes) sin importar el input | Tamaño proporcional al input                   |
+| Necesita clave        | No (el hash con clave es HMAC)                         | Sí — la seguridad vive en la clave             |
+| Pregunta que responde | "¿Es este dato **el mismo** que aquel?"                | "¿Cómo **oculto** esto y lo recupero después?" |
 
 - **Hash = huella digital (fingerprint):** identifica de forma única un contenido sin revelar el contenido. Como la huella en el legajo: te identifica, pero de la huella no se reconstruye la persona. Ejemplos: SHA-256, SHA-3. Usos: integridad de archivos (checksums), dedup (este proyecto hashea `longUrl` con SHA-256 justamente para eso — §15), firma de contenido, claves de cache.
 - **Cifrado = ocultar información para recuperarla:** el dato original vuelve a existir aplicando la clave. Usos: datos en tránsito (TLS), datos en reposo (discos, campos sensibles en DB), mensajes.
@@ -2368,10 +2368,10 @@ signature: HMAC-SHA256(base64(header) + "." + base64(payload), secret)
 
 ### Firma: simétrica vs asimétrica (conecta con §24)
 
-| Algoritmo             | Tipo       | Quién puede verificar                               | Cuándo                                              |
-| --------------------- | ---------- | ---------------------------------------------------- | ----------------------------------------------------- |
-| **HS256** (HMAC)      | Simétrico  | Solo quien tiene el **mismo secreto** que firmó      | Monolito o servicios que comparten el secreto (riesgo) |
-| **RS256 / ES256**     | Asimétrico | **Cualquiera** con la clave pública (JWKS endpoint)  | Microservicios: el auth-service firma con la privada; cada servicio (o el gateway) verifica con la pública sin poder emitir tokens |
+| Algoritmo         | Tipo       | Quién puede verificar                               | Cuándo                                                                                                                             |
+| ----------------- | ---------- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **HS256** (HMAC)  | Simétrico  | Solo quien tiene el **mismo secreto** que firmó     | Monolito o servicios que comparten el secreto (riesgo)                                                                             |
+| **RS256 / ES256** | Asimétrico | **Cualquiera** con la clave pública (JWKS endpoint) | Microservicios: el auth-service firma con la privada; cada servicio (o el gateway) verifica con la pública sin poder emitir tokens |
 
 En microservicios, RS256 es el default sensato: comprometer un servicio lector no permite falsificar tokens.
 
@@ -2383,8 +2383,9 @@ Esto es lo que estaba detrás del apunte. Verificar la firma solo responde **aut
 // GET /users/:id/orders
 const payload = verifyJwt(req.headers.authorization); // autenticación: firma + exp válidas
 
-if (payload.sub !== req.params.id) {                  // autorización: ¿es SU recurso?
-  throw new ForbiddenError();                          // 403 — token válido, recurso ajeno
+if (payload.sub !== req.params.id) {
+  // autorización: ¿es SU recurso?
+  throw new ForbiddenError(); // 403 — token válido, recurso ajeno
 }
 ```
 
@@ -2444,12 +2445,12 @@ servicio A ──► [sidecar A] ═══ red (mTLS) ═══ [sidecar B] ─�
 
 **Qué políticas aplica** (todo lo que cada servicio tendría que reimplementar, hecho una vez en infraestructura):
 
-| Categoría            | Ejemplos                                                                        |
-| -------------------- | -------------------------------------------------------------------------------- |
-| **Seguridad**        | **mTLS** automático entre todos los servicios (cifrado + identidad mutua); políticas de autorización ("payments solo acepta llamadas de orders") |
-| **Resiliencia**      | Retries con backoff, timeouts, **circuit breakers** (§3) — por config, no por código |
-| **Tráfico**          | Canary/traffic splitting ("5% de las llamadas a la v2"), mirroring, load balancing |
-| **Observabilidad**   | Métricas RED (§9), trazas distribuidas (§12) y access logs uniformes para todo el tráfico interno, gratis |
+| Categoría          | Ejemplos                                                                                                                                         |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Seguridad**      | **mTLS** automático entre todos los servicios (cifrado + identidad mutua); políticas de autorización ("payments solo acepta llamadas de orders") |
+| **Resiliencia**    | Retries con backoff, timeouts, **circuit breakers** (§3) — por config, no por código                                                             |
+| **Tráfico**        | Canary/traffic splitting ("5% de las llamadas a la v2"), mirroring, load balancing                                                               |
+| **Observabilidad** | Métricas RED (§9), trazas distribuidas (§12) y access logs uniformes para todo el tráfico interno, gratis                                        |
 
 **Gateway vs mesh (la distinción de entrevista, ya tabulada en §18):** el gateway gobierna el tráfico **norte-sur** (clientes externos → sistema); el mesh gobierna el **este-oeste** (servicios entre sí). Se complementan: gateway en el borde, mesh adentro. De hecho el mismo proxy (Envoy) suele ser el data plane de ambos.
 
@@ -2469,10 +2470,10 @@ servicio A ──► [sidecar A] ═══ red (mTLS) ═══ [sidecar B] ─�
 
 ### Las dos direcciones
 
-| Dirección       | Qué hacés                                        | Límite                                        |
-| --------------- | ------------------------------------------------- | ---------------------------------------------- |
-| **Vertical** (scale up)   | Server más grande: más CPU/RAM/disco    | Techo físico de hardware, precio exponencial, sigue siendo **un** punto de falla, escalar = downtime/migración |
-| **Horizontal** (scale out) | **Más servidores** iguales detrás de un load balancer | Coordinación: el sistema debe estar diseñado para ello |
+| Dirección                  | Qué hacés                                             | Límite                                                                                                         |
+| -------------------------- | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **Vertical** (scale up)    | Server más grande: más CPU/RAM/disco                  | Techo físico de hardware, precio exponencial, sigue siendo **un** punto de falla, escalar = downtime/migración |
+| **Horizontal** (scale out) | **Más servidores** iguales detrás de un load balancer | Coordinación: el sistema debe estar diseñado para ello                                                         |
 
 (El apunte decía "más cables" — más **servidores**. Aunque cables también vas a necesitar.)
 
@@ -2482,15 +2483,15 @@ Vertical es más simple y suele ser el primer paso correcto (nada que rediseñar
 
 Escalar horizontalmente funciona solo si **cualquier instancia puede atender cualquier request**. Todo estado debe salir del proceso y mudarse a almacenes compartidos:
 
-| Estado en el proceso             | A dónde va                                             |
-| -------------------------------- | -------------------------------------------------------- |
-| Sesiones en memoria              | Redis, o tokens autocontenidos (JWT — §25)                |
-| Archivos subidos al disco local  | Object storage (S3)                                       |
-| Cache in-process                 | Cache compartido (Redis — §22) — si no, cada instancia tiene su propia versión inconsistente |
-| Contadores/locks en memoria      | Operaciones atómicas en el datastore (`$inc`, `INCR` — §22) |
-| Cron jobs dentro de la app       | Un scheduler externo o elección de líder — o corren N veces |
+| Estado en el proceso            | A dónde va                                                                                   |
+| ------------------------------- | -------------------------------------------------------------------------------------------- |
+| Sesiones en memoria             | Redis, o tokens autocontenidos (JWT — §25)                                                   |
+| Archivos subidos al disco local | Object storage (S3)                                                                          |
+| Cache in-process                | Cache compartido (Redis — §22) — si no, cada instancia tiene su propia versión inconsistente |
+| Contadores/locks en memoria     | Operaciones atómicas en el datastore (`$inc`, `INCR` — §22)                                  |
+| Cron jobs dentro de la app      | Un scheduler externo o elección de líder — o corren N veces                                  |
 
-Las *sticky sessions* (el LB fija cada usuario a una instancia) son el parche cuando hay estado local — frágil: se pierde al escalar hacia abajo o al morir la instancia.
+Las _sticky sessions_ (el LB fija cada usuario a una instancia) son el parche cuando hay estado local — frágil: se pierde al escalar hacia abajo o al morir la instancia.
 
 ### Efectos derrame (todo conecta)
 
