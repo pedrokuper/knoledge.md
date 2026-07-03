@@ -6,102 +6,102 @@
 
 - [1. Rate Limiting L7 (NGINX)](#sec-1)
 - [2. Latencia p99 — Análisis Profundo](#sec-2)
-  - [Qué es realmente un percentil](#qué-es-realmente-un-percentil)
-  - [Por qué el promedio está estructuralmente roto para latencia](#por-qué-el-promedio-está-estructuralmente-roto-para-latencia)
-  - [La escalera de percentiles](#la-escalera-de-percentiles)
-  - [El problema del "tail at scale"](#el-problema-del-tail-at-scale)
-  - [Cómo se calculan los percentiles en la práctica](#cómo-se-calculan-los-percentiles-en-la-práctica)
-  - [Histograma de Prometheus — cómo este proyecto expone la latencia](#histograma-de-prometheus-cómo-este-proyecto-expone-la-latencia)
-  - [Por qué p99 < 10 ms con cache caliente](#por-qué-p99-10-ms-con-cache-caliente)
+  - [Qué es realmente un percentil](#sub-2-1)
+  - [Por qué el promedio está estructuralmente roto para latencia](#sub-2-2)
+  - [La escalera de percentiles](#sub-2-3)
+  - [El problema del "tail at scale"](#sub-2-4)
+  - [Cómo se calculan los percentiles en la práctica](#sub-2-5)
+  - [Histograma de Prometheus — cómo este proyecto expone la latencia](#sub-2-6)
+  - [Por qué p99 < 10 ms con cache caliente](#sub-2-7)
 - [3. Circuit Breaker y Degradación Elegante — Análisis Profundo](#sec-3)
-  - [El problema central: fallas en cascada](#el-problema-central-fallas-en-cascada)
-  - [La máquina de tres estados](#la-máquina-de-tres-estados)
-  - [Dos estrategias de disparo](#dos-estrategias-de-disparo)
-  - [Cómo lo implementa este proyecto (variante simplificada)](#cómo-lo-implementa-este-proyecto-variante-simplificada)
-  - [Cuándo aplicar un circuit breaker](#cuándo-aplicar-un-circuit-breaker)
-  - [Tradeoffs](#tradeoffs)
-  - [Circuit breaker vs. patrones relacionados](#circuit-breaker-vs-patrones-relacionados)
-  - [Implementaciones en producción](#implementaciones-en-producción)
-  - [Observabilidad para circuit breakers](#observabilidad-para-circuit-breakers)
+  - [El problema central: fallas en cascada](#sub-3-1)
+  - [La máquina de tres estados](#sub-3-2)
+  - [Dos estrategias de disparo](#sub-3-3)
+  - [Cómo lo implementa este proyecto (variante simplificada)](#sub-3-4)
+  - [Cuándo aplicar un circuit breaker](#sub-3-5)
+  - [Tradeoffs](#sub-3-6)
+  - [Circuit breaker vs. patrones relacionados](#sub-3-7)
+  - [Implementaciones en producción](#sub-3-8)
+  - [Observabilidad para circuit breakers](#sub-3-9)
 - [4. Write Concern de MongoDB — `w:majority` vs `w:1`](#sec-4)
 - [5. Evicción LFU en Redis](#sec-5)
 - [6. Backoff Exponencial y Thundering Herd](#sec-6)
-  - [Backoff Exponencial](#backoff-exponencial)
-  - [El problema del Thundering Herd](#el-problema-del-thundering-herd)
+  - [Backoff Exponencial](#sub-6-1)
+  - [El problema del Thundering Herd](#sub-6-2)
 - [7. Fire-and-Forget — No Esperar una Promise (Análisis Profundo)](#sec-7)
-  - [La mecánica: qué pasa realmente en runtime](#la-mecánica-qué-pasa-realmente-en-runtime)
-  - [La implementación de este proyecto](#la-implementación-de-este-proyecto)
-  - [Por qué `.catch()` no es opcional](#por-qué-catch-no-es-opcional)
-  - [El event loop de Node.js — lo que hace funcionar al fire-and-forget](#el-event-loop-de-nodejs-lo-que-hace-funcionar-al-fire-and-forget)
-  - [Cuándo usar fire-and-forget](#cuándo-usar-fire-and-forget)
-  - [Cuándo NO usar fire-and-forget](#cuándo-no-usar-fire-and-forget)
-  - [Los peligros ocultos](#los-peligros-ocultos)
-  - [Alternativas al fire-and-forget crudo](#alternativas-al-fire-and-forget-crudo)
-  - [Árbol de decisión: ¿debería hacer await de esto?](#árbol-de-decisión-debería-hacer-await-de-esto)
-  - [Este proyecto vs. analítica de producción](#este-proyecto-vs-analítica-de-producción)
+  - [La mecánica: qué pasa realmente en runtime](#sub-7-1)
+  - [La implementación de este proyecto](#sub-7-2)
+  - [Por qué `.catch()` no es opcional](#sub-7-3)
+  - [El event loop de Node.js — lo que hace funcionar al fire-and-forget](#sub-7-4)
+  - [Cuándo usar fire-and-forget](#sub-7-5)
+  - [Cuándo NO usar fire-and-forget](#sub-7-6)
+  - [Los peligros ocultos](#sub-7-7)
+  - [Alternativas al fire-and-forget crudo](#sub-7-8)
+  - [Árbol de decisión: ¿debería hacer await de esto?](#sub-7-9)
+  - [Este proyecto vs. analítica de producción](#sub-7-10)
 - [8. Alertas y el Pipeline de Señales SRE](#sec-8)
-  - [Monitorear no es responder incidentes](#monitorear-no-es-responder-incidentes)
-  - [El pipeline de alertas de Prometheus](#el-pipeline-de-alertas-de-prometheus)
-  - [`for:` — pending vs firing (debouncing)](#for-pending-vs-firing-debouncing)
-  - [Alertas por síntoma vs por causa](#alertas-por-síntoma-vs-por-causa)
-  - [Alertas por burn-rate de SLO (el siguiente nivel)](#alertas-por-burn-rate-de-slo-el-siguiente-nivel)
-  - [Mecánica — qué hace Prometheus en cada ciclo](#mecánica-qué-hace-prometheus-en-cada-ciclo)
-  - [Mecánica — qué hace Alertmanager con una alerta firing](#mecánica-qué-hace-alertmanager-con-una-alerta-firing)
-  - [Trampa — `for:` debe ser más corto que la vida del dato en la ventana de rate](#trampa-for-debe-ser-más-corto-que-la-vida-del-dato-en-la-ventana-de-rate)
-  - [Cómo lo hace este proyecto (Alertas)](#cómo-lo-hace-este-proyecto-alertas)
+  - [Monitorear no es responder incidentes](#sub-8-1)
+  - [El pipeline de alertas de Prometheus](#sub-8-2)
+  - [`for:` — pending vs firing (debouncing)](#sub-8-3)
+  - [Alertas por síntoma vs por causa](#sub-8-4)
+  - [Alertas por burn-rate de SLO (el siguiente nivel)](#sub-8-5)
+  - [Mecánica — qué hace Prometheus en cada ciclo](#sub-8-6)
+  - [Mecánica — qué hace Alertmanager con una alerta firing](#sub-8-7)
+  - [Trampa — `for:` debe ser más corto que la vida del dato en la ventana de rate](#sub-8-8)
+  - [Cómo lo hace este proyecto (Alertas)](#sub-8-9)
 - [9. RED y USE — Dos Métodos para Elegir Métricas](#sec-9)
-  - [RED — para servicios orientados a requests (la app)](#red-para-servicios-orientados-a-requests-la-app)
-  - [USE — para recursos (CPU, memoria, disco, pools, el event loop)](#use-para-recursos-cpu-memoria-disco-pools-el-event-loop)
-  - [Por qué el lag del event loop es _la_ señal de saturación en Node](#por-qué-el-lag-del-event-loop-es-la-señal-de-saturación-en-node)
-  - [Cómo lo hace este proyecto (RED/USE)](#cómo-lo-hace-este-proyecto-reduse)
+  - [RED — para servicios orientados a requests (la app)](#sub-9-1)
+  - [USE — para recursos (CPU, memoria, disco, pools, el event loop)](#sub-9-2)
+  - [Por qué el lag del event loop es _la_ señal de saturación en Node](#sub-9-3)
+  - [Cómo lo hace este proyecto (RED/USE)](#sub-9-4)
 - [10. Liveness vs Readiness Probes](#sec-10)
-  - [La trampa de la tormenta de reinicios](#la-trampa-de-la-tormenta-de-reinicios)
-  - [Cómo lo hace este proyecto (Probes)](#cómo-lo-hace-este-proyecto-probes)
+  - [La trampa de la tormenta de reinicios](#sub-10-1)
+  - [Cómo lo hace este proyecto (Probes)](#sub-10-2)
 - [11. Cardinalidad de Labels de Métricas](#sec-11)
-  - [Las reglas](#las-reglas)
-  - [Cómo lo hace este proyecto (Cardinalidad)](#cómo-lo-hace-este-proyecto-cardinalidad)
+  - [Las reglas](#sub-11-1)
+  - [Cómo lo hace este proyecto (Cardinalidad)](#sub-11-2)
 - [12. Correlación de Logs, Métricas y Trazas](#sec-12)
-  - [Cómo lo hace este proyecto (Correlación)](#cómo-lo-hace-este-proyecto-correlación)
+  - [Cómo lo hace este proyecto (Correlación)](#sub-12-1)
 - [13. Hardening de Contenedores — Radio de Impacto y Aislamiento](#sec-13)
-  - [Contenedores non-root](#contenedores-non-root)
-  - [Límites de recursos — el problema del vecino ruidoso / OOM](#límites-de-recursos-el-problema-del-vecino-ruidoso-oom)
-  - [Comparación de secretos timing-safe](#comparación-de-secretos-timing-safe)
-  - [Binding de puertos solo a loopback](#binding-de-puertos-solo-a-loopback)
-  - [Cómo lo hace este proyecto (Hardening)](#cómo-lo-hace-este-proyecto-hardening)
+  - [Contenedores non-root](#sub-13-1)
+  - [Límites de recursos — el problema del vecino ruidoso / OOM](#sub-13-2)
+  - [Comparación de secretos timing-safe](#sub-13-3)
+  - [Binding de puertos solo a loopback](#sub-13-4)
+  - [Cómo lo hace este proyecto (Hardening)](#sub-13-5)
 - [14. Flujo de Datos de Métricas — Modelo Pull, Fuente vs Vista](#sec-14)
-  - [Pull vs push](#pull-vs-push)
-  - [Dos familias en `/metrics`](#dos-familias-en-metrics)
-  - [Cómo lo hace este proyecto (Métricas)](#cómo-lo-hace-este-proyecto-métricas)
+  - [Pull vs push](#sub-14-1)
+  - [Dos familias en `/metrics`](#sub-14-2)
+  - [Cómo lo hace este proyecto (Métricas)](#sub-14-3)
 - [15. Parseo de URLs WHATWG y Normalización de Entradas](#sec-15)
-  - [Qué es el estándar WHATWG URL](#qué-es-el-estándar-whatwg-url)
-  - [Zod `.url()` valida pero no normaliza](#zod-url-valida-pero-no-normaliza)
-  - [El bug de dedup que esto causa](#el-bug-de-dedup-que-esto-causa)
-  - [El fix: `.trim()` antes de `.url()`](#el-fix-trim-antes-de-url)
-  - [La regla general: normalizar entradas en el borde](#la-regla-general-normalizar-entradas-en-el-borde)
-  - [Cuándo ir más lejos](#cuándo-ir-más-lejos)
-  - [Cómo lo hace este proyecto (Normalización)](#cómo-lo-hace-este-proyecto-normalización)
+  - [Qué es el estándar WHATWG URL](#sub-15-1)
+  - [Zod `.url()` valida pero no normaliza](#sub-15-2)
+  - [El bug de dedup que esto causa](#sub-15-3)
+  - [El fix: `.trim()` antes de `.url()`](#sub-15-4)
+  - [La regla general: normalizar entradas en el borde](#sub-15-5)
+  - [Cuándo ir más lejos](#sub-15-6)
+  - [Cómo lo hace este proyecto (Normalización)](#sub-15-7)
 - [16. Diseño de Histogramas de Prometheus — Buckets, Labels y Cobertura de Cola](#sec-16)
-  - [Por qué histogramas para latencia (no gauges, no counters)](#por-qué-histogramas-para-latencia-no-gauges-no-counters)
-  - [Cómo funcionan los buckets](#cómo-funcionan-los-buckets)
-  - [Diseño de buckets: cubrir tu SLO, extender la cola](#diseño-de-buckets-cubrir-tu-slo-extender-la-cola)
-  - [El label `status_class` — segmentación por resultado sin explosión de cardinalidad](#el-label-status_class-segmentación-por-resultado-sin-explosión-de-cardinalidad)
-  - [Cómo `status_class` habilita la alerta HighErrorRate](#cómo-status_class-habilita-la-alerta-higherrorrate)
-  - [Decisiones de diseño de paneles en Grafana](#decisiones-de-diseño-de-paneles-en-grafana)
-  - [Cómo lo hace este proyecto (Histogramas)](#cómo-lo-hace-este-proyecto-histogramas)
+  - [Por qué histogramas para latencia (no gauges, no counters)](#sub-16-1)
+  - [Cómo funcionan los buckets](#sub-16-2)
+  - [Diseño de buckets: cubrir tu SLO, extender la cola](#sub-16-3)
+  - [El label `status_class` — segmentación por resultado sin explosión de cardinalidad](#sub-16-4)
+  - [Cómo `status_class` habilita la alerta HighErrorRate](#sub-16-5)
+  - [Decisiones de diseño de paneles en Grafana](#sub-16-6)
+  - [Cómo lo hace este proyecto (Histogramas)](#sub-16-7)
 - [17. Monolito vs Microservicios vs Arquitectura Orientada a Eventos](#sec-17)
-  - [Monolito — cuándo es la decisión correcta](#monolito-cuándo-es-la-decisión-correcta)
-  - [Microservicios — cuándo es la decisión correcta](#microservicios-cuándo-es-la-decisión-correcta)
-  - [Arquitectura orientada a eventos — cuándo es la decisión correcta](#arquitectura-orientada-a-eventos-cuándo-es-la-decisión-correcta)
-  - [Atajo de decisión](#atajo-de-decisión)
-  - [Cómo encaja este proyecto](#cómo-encaja-este-proyecto)
+  - [Monolito — cuándo es la decisión correcta](#sub-17-1)
+  - [Microservicios — cuándo es la decisión correcta](#sub-17-2)
+  - [Arquitectura orientada a eventos — cuándo es la decisión correcta](#sub-17-3)
+  - [Atajo de decisión](#sub-17-4)
+  - [Cómo encaja este proyecto](#sub-17-5)
 - [18. API Gateway — Qué Es, Patrones, Casos de Uso](#sec-18)
-  - [Qué hace realmente un API Gateway](#qué-hace-realmente-un-api-gateway)
-  - [API Gateway vs reverse proxy vs load balancer vs service mesh](#api-gateway-vs-reverse-proxy-vs-load-balancer-vs-service-mesh)
-  - [Patrones centrales](#patrones-centrales)
-  - [Cuándo necesitás uno](#cuándo-necesitás-uno)
-  - [Implementaciones en producción](#implementaciones-en-producción-1)
-  - [Tradeoffs](#tradeoffs-1)
-  - [Cómo encaja este proyecto](#cómo-encaja-este-proyecto-1)
+  - [Qué hace realmente un API Gateway](#sub-18-1)
+  - [API Gateway vs reverse proxy vs load balancer vs service mesh](#sub-18-2)
+  - [Patrones centrales](#sub-18-3)
+  - [Cuándo necesitás uno](#sub-18-4)
+  - [Implementaciones en producción](#sub-18-5)
+  - [Tradeoffs](#sub-18-6)
+  - [Cómo encaja este proyecto](#sub-18-7)
 - [19. SQL vs NoSQL — Qué Es Cada Uno y Cuándo Usarlos](#sec-19)
 - [20. DynamoDB](#sec-20)
 - [21. OpenSearch](#sec-21)
@@ -157,6 +157,8 @@ Esa diferenciación solo es posible en L7 — en L4 todos esos requests se ven i
 
 ## 2. Latencia p99 — Análisis Profundo
 
+<a id="sub-2-1"></a>
+
 ### Qué es realmente un percentil
 
 Ordená todas las mediciones de latencia de la más rápida a la más lenta. El **percentil N** es el valor en la posición N% de esa lista ordenada.
@@ -173,6 +175,8 @@ avg = (1+1+2+2+3+3+4+5+8+9000) / 10      = 902.9 ms  ← completamente inútil
 El promedio es 902 ms pero 9 de cada 10 usuarios experimentaron ≤ 8 ms. El único outlier de 9 segundos destruye el promedio. **Los promedios mienten. Los percentiles dicen la verdad.**
 
 ---
+
+<a id="sub-2-2"></a>
 
 ### Por qué el promedio está estructuralmente roto para latencia
 
@@ -191,6 +195,8 @@ Simétrica (la media sirve):       Latencia (la media rota):
 Esta forma de distribución se llama **sesgada a la derecha** (right-skewed). En distribuciones sesgadas, la media se corre hacia la cola. Un request de 30 segundos puede subir el promedio de 10.000 requests de 2 ms a 5 ms — escondiendo invisiblemente el outlier catastrófico.
 
 ---
+
+<a id="sub-2-3"></a>
 
 ### La escalera de percentiles
 
@@ -211,6 +217,8 @@ Esta forma de distribución se llama **sesgada a la derecha** (right-skewed). En
 - A 10.000 req/s: p999 significa **10 requests malos por segundo** → siguen siendo usuarios reales afectados
 
 ---
+
+<a id="sub-2-4"></a>
 
 ### El problema del "tail at scale"
 
@@ -246,6 +254,8 @@ Por esto el paper de Google "The Tail at Scale" (2013) es fundacional — explic
 
 ---
 
+<a id="sub-2-5"></a>
+
 ### Cómo se calculan los percentiles en la práctica
 
 **Método exacto:** ordenar todos los valores, indexar el array. Requiere guardar cada medición. Para 1 millón de requests/día = 1M de números en memoria. Impracticable a escala.
@@ -270,6 +280,8 @@ Para estimar el p99: encontrar el bucket más chico cuyo límite superior acumul
 
 ---
 
+<a id="sub-2-6"></a>
+
 ### Histograma de Prometheus — cómo este proyecto expone la latencia
 
 En `src/observability/metrics.ts`, `http_duration_seconds` se define como un histograma con los límites de bucket por defecto de Prometheus. Grafana lo consulta con:
@@ -287,6 +299,8 @@ Esto calcula el p99 sobre una ventana móvil de 5 minutos. `rate()` da las tasas
 - `histogram_quantile(0.99, ...)` → p99 ← este es el objetivo del SLO
 
 ---
+
+<a id="sub-2-7"></a>
 
 ### Por qué p99 < 10 ms con cache caliente
 
@@ -316,6 +330,8 @@ Cuando Redis está frío (recién reiniciado), cada request golpea MongoDB. El p
 
 ## 3. Circuit Breaker y Degradación Elegante — Análisis Profundo
 
+<a id="sub-3-1"></a>
+
 ### El problema central: fallas en cascada
 
 Sin un circuit breaker, una dependencia que falla puede tirar abajo todo tu sistema — no por falla directa, sino por **falla en cascada**:
@@ -332,6 +348,8 @@ Redis se cae
 El timeout es el asesino. Si Redis tarda 5 segundos en dar timeout y tenés 1000 usuarios concurrentes, acumulaste 5000 segundos de trabajo bloqueado. El circuit breaker resuelve esto **fallando rápido** — en vez de esperar 5 segundos por llamada, devolvés `null` en microsegundos una vez que el circuito está abierto.
 
 ---
+
+<a id="sub-3-2"></a>
 
 ### La máquina de tres estados
 
@@ -374,6 +392,8 @@ Un circuit breaker es literalmente una máquina de estados finitos con tres esta
 
 ---
 
+<a id="sub-3-3"></a>
+
 ### Dos estrategias de disparo
 
 **Ventana por conteo:** abrir después de N fallas consecutivas.
@@ -403,6 +423,8 @@ if (total_calls < 20) → sigue CLOSED sin importar la tasa de error
 ```
 
 ---
+
+<a id="sub-3-4"></a>
 
 ### Cómo lo implementa este proyecto (variante simplificada)
 
@@ -441,6 +463,8 @@ async get(shortCode: string): Promise<string | null> {
 
 ---
 
+<a id="sub-3-5"></a>
+
 ### Cuándo aplicar un circuit breaker
 
 Aplicalo cuando **las tres** condiciones sean ciertas:
@@ -465,6 +489,8 @@ Aplicalo cuando **las tres** condiciones sean ciertas:
 
 ---
 
+<a id="sub-3-6"></a>
+
 ### Tradeoffs
 
 | Preocupación      | Sin circuit breaker                          | Con circuit breaker                                               |
@@ -483,6 +509,8 @@ Aplicalo cuando **las tres** condiciones sean ciertas:
 - Usar HALF-OPEN con incremento gradual de tráfico (probe canario) en vez de pasa/no-pasa binario
 
 ---
+
+<a id="sub-3-7"></a>
 
 ### Circuit breaker vs. patrones relacionados
 
@@ -511,6 +539,8 @@ Request
 Retry sin circuit breaker es peligroso: 100 clientes reintentando 3 veces cada uno = carga amplificada 300× sobre un servicio que ya está sufriendo.
 
 ---
+
+<a id="sub-3-8"></a>
 
 ### Implementaciones en producción
 
@@ -544,6 +574,8 @@ breaker.on("close", () => logger.info("circuit closed"));
 Este proyecto usa una implementación manual en su lugar — más simple y suficiente para una dependencia binaria como Redis.
 
 ---
+
+<a id="sub-3-9"></a>
 
 ### Observabilidad para circuit breakers
 
@@ -639,6 +671,8 @@ LRU evicta A (último acceso más viejo). LFU evicta B (menor frecuencia total).
 
 ## 6. Backoff Exponencial y Thundering Herd
 
+<a id="sub-6-1"></a>
+
 ### Backoff Exponencial
 
 Cuando una conexión falla, el cliente espera antes de reintentar. **Backoff exponencial** significa que el tiempo de espera se duplica con cada intento fallido:
@@ -658,6 +692,8 @@ El tope `min(..., 30s)` evita que la espera crezca hasta el infinito. Pasado cie
 
 1. Desperdician CPU/red de ambos lados
 2. Pueden impedir que el servicio caído se recupere (está ocupado atendiendo tormentas de retries)
+
+<a id="sub-6-2"></a>
 
 ### El problema del Thundering Herd
 
@@ -686,6 +722,8 @@ El **jitter** (varianza aleatoria agregada al delay) es una mejora común que di
 <a id="sec-7"></a>
 
 ## 7. Fire-and-Forget — No Esperar una Promise (Análisis Profundo)
+
+<a id="sub-7-1"></a>
 
 ### La mecánica: qué pasa realmente en runtime
 
@@ -764,6 +802,8 @@ La respuesta ya se fue para el tick N+1. El insert y la respuesta son **concurre
 
 ---
 
+<a id="sub-7-2"></a>
+
 ### La implementación de este proyecto
 
 ```typescript
@@ -787,6 +827,8 @@ Tres cosas pasando acá:
 
 ---
 
+<a id="sub-7-3"></a>
+
 ### Por qué `.catch()` no es opcional
 
 Una Promise sin await y sin handler de error que rechaza emite `unhandledRejection` en el proceso de Node.js. En Node 15+, esto **termina el proceso por defecto**. En versiones anteriores es un warning, pero el default eventualmente será crash en todos lados.
@@ -805,6 +847,8 @@ void clickRepo.insert({ ... }).catch((err) => logger.warn({ err }, "click failed
 TypeScript con `@typescript-eslint/no-floating-promises` marca las Promises sin await que no tengan `void` — el operador `void` señala explícitamente "sé que esto no tiene await y estoy de acuerdo con eso".
 
 ---
+
+<a id="sub-7-4"></a>
 
 ### El event loop de Node.js — lo que hace funcionar al fire-and-forget
 
@@ -859,6 +903,8 @@ process.nextTick(() => console.log("nextTick")); // nextTick queue
 
 ---
 
+<a id="sub-7-5"></a>
+
 ### Cuándo usar fire-and-forget
 
 Usalo cuando **las tres** condiciones se cumplan:
@@ -880,6 +926,8 @@ Usalo cuando **las tres** condiciones se cumplan:
 | Entrega de webhooks a terceros       | Mandar y seguir; la entrega es problema de ellos                 |
 
 ---
+
+<a id="sub-7-6"></a>
 
 ### Cuándo NO usar fire-and-forget
 
@@ -908,6 +956,8 @@ Usalo cuando **las tres** condiciones se cumplan:
 5. **El graceful shutdown necesita drenar.** Si tu proceso recibe SIGTERM con 500 inserts fire-and-forget en vuelo, todos mueren en silencio.
 
 ---
+
+<a id="sub-7-7"></a>
 
 ### Los peligros ocultos
 
@@ -962,6 +1012,8 @@ clickRepo.insert({ ip, userAgent, referrer }).catch(logger.warn);
 Siempre extraé valores primitivos de los objetos request antes de disparar; no cierres sobre el `req` completo.
 
 ---
+
+<a id="sub-7-8"></a>
 
 ### Alternativas al fire-and-forget crudo
 
@@ -1125,6 +1177,8 @@ Redis Streams no tiene primitiva de DLQ built-in — lo más parecido es código
 
 ---
 
+<a id="sub-7-9"></a>
+
 ### Árbol de decisión: ¿debería hacer await de esto?
 
 ```
@@ -1148,6 +1202,8 @@ Redis Streams no tiene primitiva de DLQ built-in — lo más parecido es código
 ```
 
 ---
+
+<a id="sub-7-10"></a>
 
 ### Este proyecto vs. analítica de producción
 
@@ -1189,6 +1245,8 @@ El patrón F&F acá es correcto para un proyecto de aprendizaje / despliegue chi
 
 SRE = Site Reliability Engineering
 
+<a id="sub-8-1"></a>
+
 ### Monitorear no es responder incidentes
 
 Un dashboard lleno de métricas te dice qué anda mal **una vez que ya estás mirando**. La métrica que importa a las 3am es la que _despierta a alguien_. Sin alertas, tu **MTTD** (Mean Time To Detect) es "lo que tarde un humano en mirar Grafana de casualidad" — que en la práctica significa "hasta que se queje un cliente".
@@ -1203,6 +1261,8 @@ con alertas:      ocurre incidente ──► regla dispara ──► page ──
 
 Este proyecto originalmente traía dashboards pero sin reglas de alerta — "visible en producción, no listo para producción". Las secciones de abajo describen el pipeline agregado para cerrar esa brecha.
 
+<a id="sub-8-2"></a>
+
 ### El pipeline de alertas de Prometheus
 
 ```
@@ -1216,6 +1276,8 @@ Este proyecto originalmente traía dashboards pero sin reglas de alerta — "vis
 - **Alertmanager** es un proceso _separado_. Deduplica (10 réplicas de la app disparando la misma alerta = una notificación), agrupa, silencia y rutea a los receivers. Prometheus solo decide _si_ una alerta dispara; Alertmanager decide _quién se entera y con qué frecuencia_.
 - Un **receiver** es el destino de entrega (Slack, PagerDuty, Opsgenie, email, webhook).
 
+<a id="sub-8-3"></a>
+
 ### `for:` — pending vs firing (debouncing)
 
 Una regla con `for: 5m` no dispara en el instante en que su `expr` es verdadero. Primero pasa a **pending**, y solo transiciona a **firing** si la condición se mantiene verdadera los 5 minutos completos. Esto filtra blips transitorios — un solo scrape lento o un pico de CPU de 10 segundos no deberían pagear a nadie.
@@ -1228,6 +1290,8 @@ estado      :  inactive──► pending(arranca timer)──► (se limpia ante
 estado      :  pending ─────────────────────────► FIRING ──► Alertmanager
 ```
 
+<a id="sub-8-4"></a>
+
 ### Alertas por síntoma vs por causa
 
 | Estilo      | Alerta sobre…            | Ejemplo                           | Pro / Contra                                                                       |
@@ -1237,9 +1301,13 @@ estado      :  pending ───────────────────
 
 Guía de Google SRE: **pagear por síntomas, diagnosticar con causas.** Demasiados pages por causa generan fatiga de alertas. Este proyecto mantiene las alertas por causa (`RedisDown`) en severidad más baja donde el cache degrada elegantemente (la DB sigue sirviendo), y trata `HighErrorRate` / `HighLatencyP99` como las señales reales.
 
+<a id="sub-8-5"></a>
+
 ### Alertas por burn-rate de SLO (el siguiente nivel)
 
 Un setup maduro no alerta por "tasa de error > 5% ahora mismo". Alerta por **qué tan rápido estás quemando tu presupuesto de error**. Si tu SLO es 99.9% de éxito (0.1% de presupuesto/mes), una alerta de burn-rate dispara cuando estás consumiendo ese presupuesto lo bastante rápido como para agotarlo antes de que termine la ventana — el burn rápido pagea inmediatamente, el burn lento abre un ticket. Esto evita tanto el flapping como las fugas lentas que pasan desapercibidas. (No implementado acá — `HighErrorRate` es un umbral simple — pero es la evolución natural.)
+
+<a id="sub-8-6"></a>
 
 ### Mecánica — qué hace Prometheus en cada ciclo
 
@@ -1259,6 +1327,8 @@ Puntos clave:
 - Prometheus pushea las alertas al `/api/v2/alerts` de Alertmanager **y las sigue re-enviando en cada evaluación** mientras están firing (así un Alertmanager reiniciado re-aprende el estado). Cuando el expr deja de devolver la fila, Prometheus manda un `resolved`.
 - **Solo FIRING se envía.** `pending` vive enteramente dentro de Prometheus — por eso una alerta pending nunca aparece en la UI de Alertmanager.
 
+<a id="sub-8-7"></a>
+
 ### Mecánica — qué hace Alertmanager con una alerta firing
 
 Alertmanager es un proceso _separado_ cuyo único trabajo es convertir un stream de alertas firing en la cantidad correcta de notificaciones útiles:
@@ -1274,6 +1344,8 @@ alerta firing entra ─► [ árbol de rutas ] ─► [ group_by ] ─► [ wait
 - **Inhibition** — una alerta de más alto nivel suprime ruido (ej. `TargetDown` inhibe `HighLatencyP99` para el mismo target — no tiene sentido pagear por latencia cuando está caído).
 
 En este proyecto el receiver es `null` (sin paging real), así que las alertas firing aparecen en la **UI** de Alertmanager pero no van a ningún otro lado — suficiente para probar el pipeline.
+
+<a id="sub-8-8"></a>
 
 ### Trampa — `for:` debe ser más corto que la vida del dato en la ventana de rate
 
@@ -1293,6 +1365,8 @@ t=5m   el timer de for: completaría... pero los 50 errores acaban de salir de l
 ```
 
 **Regla práctica:** para disparar una alerta con `for: D` y `rate[W]`, la condición debe mantenerse **al menos D**, lo que significa que los eventos subyacentes deben seguir ocurriendo durante ≳ D (no solo W). Para disparar `HighErrorRate` de verdad: sostener errores > 5 min (`node scripts/gen-errors.js 2000 5` ≈ 6.7 min de Mongo pausado), o bajar el `for:`. En contraste, `TargetDown`/`RedisDown` disparan confiablemente en `test-alerts.sh` porque su condición (`up==0`, `redis_circuit_open==1`) es _level-triggered_ — se mantiene verdadera todo el tiempo que la dependencia esté caída, no es una tasa que decae.
+
+<a id="sub-8-9"></a>
 
 ### Cómo lo hace este proyecto (Alertas)
 
@@ -1325,6 +1399,8 @@ t=5m   el timer de for: completaría... pero los 50 errores acaban de salir de l
 
 No podés graficar todo. Dos modelos mentales complementarios te dicen _qué_ señales importan.
 
+<a id="sub-9-1"></a>
+
 ### RED — para servicios orientados a requests (la app)
 
 | Letra        | Métrica                       | Este proyecto                                           |
@@ -1334,6 +1410,8 @@ No podés graficar todo. Dos modelos mentales complementarios te dicen _qué_ se
 | **D**uration | Distribución de latencia      | `histogram_quantile(…, http_duration_seconds_bucket)`   |
 
 RED responde: _"¿Mis usuarios están recibiendo respuestas rápidas y correctas?"_ Está orientado a síntomas — las mismas tres señales sobre las que disparan las mejores alertas (§8).
+
+<a id="sub-9-2"></a>
 
 ### USE — para recursos (CPU, memoria, disco, pools, el event loop)
 
@@ -1345,9 +1423,13 @@ RED responde: _"¿Mis usuarios están recibiendo respuestas rápidas y correctas
 
 USE responde: _"¿Algún recurso es el cuello de botella?"_
 
+<a id="sub-9-3"></a>
+
 ### Por qué el lag del event loop es _la_ señal de saturación en Node
 
 Node es single-threaded. Si un handler sincrónico acapara la CPU, el event loop no puede atender los callbacks de I/O pendientes — se encolan. El **lag del event loop** mide exactamente esa demora: la brecha entre cuándo un timer _debería_ disparar y cuándo _realmente_ dispara. Lag creciente significa que el proceso está saturado aunque el CPU% se vea moderado. Es el clásico page de Node a las 3am, por eso se agregó un panel para `nodejs_eventloop_lag_p99_seconds` (viene gratis con `collectDefaultMetrics`, solo que no estaba graficado).
+
+<a id="sub-9-4"></a>
 
 ### Cómo lo hace este proyecto (RED/USE)
 
@@ -1373,6 +1455,8 @@ Estos dos health checks responden **preguntas distintas**, y confundirlos causa 
 | **Liveness**  | "¿Este proceso está vivo / no deadlockeado?"        | **Reinicia el contenedor**                   | **No**                 |
 | **Readiness** | "¿Esta instancia puede servir tráfico ahora mismo?" | **La saca del load balancer** (sin reinicio) | **Sí**                 |
 
+<a id="sub-10-1"></a>
+
 ### La trampa de la tormenta de reinicios
 
 Suponé que usás **un solo** endpoint `/health` que pingea MongoDB, y lo cableás al liveness check del contenedor. Mongo tiene un blip de 30 segundos:
@@ -1387,6 +1471,8 @@ Mongo tiene un blip
 ```
 
 La app estaba **bien** — solo su dependencia tuvo un hipo. Reiniciarla no arregló nada y empeoró todo. El liveness no debe depender de **nada externo**. El readiness es donde van los chequeos de dependencias: un 503 ahí solo deja de rutear tráfico nuevo a esa instancia hasta que Mongo se recupere — sin reinicio, sin tormenta.
+
+<a id="sub-10-2"></a>
 
 ### Cómo lo hace este proyecto (Probes)
 
@@ -1433,12 +1519,16 @@ http_requests_total{route="/scan-attempt-47281"}   ← cada probe de scanner tam
 
 Esto es una **bomba de cardinalidad**. Un bot escaneando paths aleatorios podría acuñar series sin límite y crashear tu monitoreo — convirtiendo un ataque a tu app en un ataque a tu observabilidad.
 
+<a id="sub-11-1"></a>
+
 ### Las reglas
 
 1. **Los labels deben estar acotados.** Nunca pongas URLs crudas, IDs de usuario, emails, request IDs, timestamps o mensajes de error completos en un label.
 2. **Usá patrones, no valores.** `route="/:shortUrl"` (una serie) no `route="/aB3xK"` (∞).
 3. **Bucketeá dimensiones de alta cardinalidad.** `status_class="2xx"` (4 valores) en vez de, o junto a, el `status` crudo solo donde el valor crudo se necesite genuinamente.
 4. **Los datos de alta cardinalidad van en logs/trazas,** no en métricas. (Ver §12 — para eso está el `X-Request-Id` en Loki.)
+
+<a id="sub-11-2"></a>
 
 ### Cómo lo hace este proyecto (Cardinalidad)
 
@@ -1483,6 +1573,8 @@ Loki:  {app="app1"} |= "7f3a…"                   ← las líneas de log exacta
 
 Para un **servicio único**, un request ID end-to-end es el 80% barato del tracing distribuido. El tracing completo (OpenTelemetry, propagando un contexto de traza a través de saltos entre servicios) importa cuando hacés fan-out a múltiples servicios — es el próximo paso natural, no necesario acá.
 
+<a id="sub-12-1"></a>
+
 ### Cómo lo hace este proyecto (Correlación)
 
 - `src/middleware/logger.ts` — el `genReqId` de `pino-http` asigna un UUID `req.id` a cada request; cada línea de log de ese request lo lleva.
@@ -1504,6 +1596,8 @@ Para un **servicio único**, un request ID end-to-end es el 80% barato del traci
 
 La mayoría de estos son cambios de una línea que convierten un incidente chico en uno contenido en vez de uno a nivel host.
 
+<a id="sub-13-1"></a>
+
 ### Contenedores non-root
 
 Por defecto el proceso de un contenedor corre como **root dentro del contenedor**. Si un atacante logra RCE (o una dependencia está comprometida), root-en-contenedor es un radio de impacto mucho mayor — facilita exploits de escape de contenedor y le permite al proceso alterar archivos montados. Correr como usuario sin privilegios es defensa en profundidad.
@@ -1512,6 +1606,8 @@ Por defecto el proceso de un contenedor corre como **root dentro del contenedor*
 RUN chown -R node:node /app
 USER node          # node:alpine ships this user; the app never needs root
 ```
+
+<a id="sub-13-2"></a>
 
 ### Límites de recursos — el problema del vecino ruidoso / OOM
 
@@ -1524,6 +1620,8 @@ cpus: 1.0
 ```
 
 Los límites convierten "falla ilimitada del host" en "un contenedor se reinicia".
+
+<a id="sub-13-3"></a>
 
 ### Comparación de secretos timing-safe
 
@@ -1539,6 +1637,8 @@ function tokensMatch(provided: string, expected: string): boolean {
 
 (La longitud se compara primero porque `timingSafeEqual` _requiere_ buffers de igual longitud; la longitud en sí es de bajo valor como filtración.)
 
+<a id="sub-13-4"></a>
+
 ### Binding de puertos solo a loopback
 
 `ports: ["27017:27017"]` bindea a `0.0.0.0` — el datastore es alcanzable desde **cualquier** interfaz de red, incluidas las públicas, a menudo sin auth. Bindear a `127.0.0.1` mantiene el puerto disponible para debugging local (`mongosh`, `redis-cli`) mientras lo hace inalcanzable desde la red. El tráfico entre contenedores no se ve afectado — usa el DNS interno de Docker, no el puerto publicado del host.
@@ -1547,6 +1647,8 @@ function tokensMatch(provided: string, expected: string): boolean {
 ports:
   - "127.0.0.1:27017:27017" # localhost only, not the world
 ```
+
+<a id="sub-13-5"></a>
 
 ### Cómo lo hace este proyecto (Hardening)
 
@@ -1585,9 +1687,13 @@ Una confusión común: _"si Grafana ya muestra los datos, ¿el endpoint `/metric
 
 Grafana no renderiza _nada propio_. Matá `/metrics` → Prometheus scrapea vacío → Grafana queda en blanco. "Grafana muestra los mismos datos" es todo el punto: son _esos_ datos, almacenados y graficados. Golpear `/metrics` directo es solo para debugging ("¿la app siquiera está exponiendo el counter X?") sin el lag de scrape→almacenar→renderizar.
 
+<a id="sub-14-1"></a>
+
 ### Pull vs push
 
 Prometheus **pullea** (scrapea un endpoint HTTP) en vez de que la app **pushee**. Beneficios: la app queda tonta (solo expone valores actuales, sin egreso de red hacia un backend de métricas); las fallas de scrape son en sí una señal (`up == 0` → la alerta `TargetDown`); y cualquier herramienta puede leer `/metrics` independientemente. El tradeoff — los jobs de vida corta que mueren entre scrapes necesitan un Pushgateway — no aplica a un web server de larga vida.
+
+<a id="sub-14-2"></a>
 
 ### Dos familias en `/metrics`
 
@@ -1597,6 +1703,8 @@ Prometheus **pullea** (scrapea un endpoint HTTP) en vez de que la app **pushee**
 | **Métricas default** (auto)      | `process_resident_memory_bytes`, `nodejs_eventloop_lag_p99_seconds`, `nodejs_gc_duration_seconds`, `process_open_fds` | `collectDefaultMetrics()`                   | USE/saturación — _por qué_ el proceso está lento |
 
 El bloque `process_*` / `nodejs_*` **no es ruido** — es la vista de recursos (USE, §9) que las métricas de app no pueden proveer: lag del event loop (loop bloqueado), RSS (fuga), pausas de GC (latencia), cantidad de fds (fuga de conexiones). Los paneles de lag del event loop y RSS del dashboard leen exactamente estas.
+
+<a id="sub-14-3"></a>
 
 ### Cómo lo hace este proyecto (Métricas)
 
@@ -1615,6 +1723,8 @@ El bloque `process_*` / `nodejs_*` **no es ruido** — es la vista de recursos (
 
 ## 15. Parseo de URLs WHATWG y Normalización de Entradas
 
+<a id="sub-15-1"></a>
+
 ### Qué es el estándar WHATWG URL
 
 El **WHATWG URL Standard** (`https://url.spec.whatwg.org/`) es la especificación viviente que siguen los navegadores y Node.js al parsear URLs. Reemplazó el enfoque más viejo de RFC 3986 para la plataforma web y es lo que usa `new URL(string)` en JavaScript.
@@ -1631,6 +1741,8 @@ Objetivo de diseño clave: **ser permisivo en lo que aceptás, pero producir una
 
 Las últimas dos filas son las críticas. El parser elimina el whitespace circundante y resuelve los dot-segments antes incluso de empezar a interpretar los componentes de la URL.
 
+<a id="sub-15-2"></a>
+
 ### Zod `.url()` valida pero no normaliza
 
 El validador `.url()` de Zod llama `new URL(input)` internamente — pero solo para **chequear** si el parseo tiene éxito. Devuelve el **string original** sin cambios:
@@ -1641,6 +1753,8 @@ z.string().url().parse("  https://example.com  ");
 ```
 
 Este es el comportamiento correcto para un validador: el trabajo de Zod es decir sí/no, no reescribir tus datos — salvo que se lo digas con un transform.
+
+<a id="sub-15-3"></a>
 
 ### El bug de dedup que esto causa
 
@@ -1659,6 +1773,8 @@ Si se hashea el string crudo (sin trim):
 
 Dos short codes distintos ahora redirigen al **mismo destino** — un miss de dedup. El parser WHATWG trata las dos URLs como idénticas (el whitespace se elimina antes de parsear), pero el hash SHA-256 ve dos secuencias de bytes distintas.
 
+<a id="sub-15-4"></a>
+
 ### El fix: `.trim()` antes de `.url()`
 
 ```ts
@@ -1671,6 +1787,8 @@ export const longUrlSchema = z
 ```
 
 `.trim()` es un transform de Zod — reescribe el valor, así que `.url()` (y todo lo que sigue) ve el string limpio. Ahora tanto `"https://example.com"` como `"https://example.com "` hashean al mismo valor y pegan en el índice de dedup.
+
+<a id="sub-15-5"></a>
 
 ### La regla general: normalizar entradas en el borde
 
@@ -1689,6 +1807,8 @@ export const longUrlSchema = z
 
 La normalización silenciosa del parser WHATWG es útil en un navegador (UX indulgente), pero en un server que guarda un hash del input crea un desajuste entre "lo que ve el parser" y "lo que guardás". Siempre normalizá a la forma canónica **antes** de hashear o guardar.
 
+<a id="sub-15-6"></a>
+
 ### Cuándo ir más lejos
 
 `.trim()` maneja el whitespace. Para canonicalización completa de URLs (remoción de fragmentos, esquema a minúsculas, normalización de trailing-slash, orden del query string), podrías hacer:
@@ -1698,6 +1818,8 @@ La normalización silenciosa del parser WHATWG es útil en un navegador (UX indu
 ```
 
 Este proyecto se queda en `.trim()` — alcanza para el caso de dedup y evita reescribir URLs de formas inesperadas (ej. normalizar `%2F` en paths).
+
+<a id="sub-15-7"></a>
 
 ### Cómo lo hace este proyecto (Normalización)
 
@@ -1717,6 +1839,8 @@ Este proyecto se queda en `.trim()` — alcanza para el caso de dedup y evita re
 
 ## 16. Diseño de Histogramas de Prometheus — Buckets, Labels y Cobertura de Cola
 
+<a id="sub-16-1"></a>
+
 ### Por qué histogramas para latencia (no gauges, no counters)
 
 Tres tipos de métrica pueden registrar una duración:
@@ -1733,6 +1857,8 @@ Los histogramas ganan para latencia porque:
 - Los percentiles se computan **server-side** en PromQL — podés calcularlos a través de instancias y ventanas de tiempo arbitrarias después del hecho.
 - Los summaries calculan cuantiles en el **proceso de la app** — no se pueden agregar entre réplicas y la ventana del cuantil se fija al instrumentar.
 - El tradeoff: los percentiles de histograma son **aproximados** (interpolados dentro de un bucket). La precisión mejora con buckets más finos alrededor de los valores que te importan.
+
+<a id="sub-16-2"></a>
 
 ### Cómo funcionan los buckets
 
@@ -1753,6 +1879,8 @@ observe(0.150s):
 
 `histogram_quantile(0.99, rate(http_duration_seconds_bucket[5m]))` interpola el valor p99 desde estos conteos acumulativos. Si el 99% de las observaciones caen en el bucket `(0.1, 0.25]`, Prometheus asume distribución uniforme dentro de ese rango e interpola. **La precisión se degrada si el bucket es demasiado ancho.**
 
+<a id="sub-16-3"></a>
+
 ### Diseño de buckets: cubrir tu SLO, extender la cola
 
 Los buckets default de `prom-client` paran en **10 segundos**. Para un URL shortener con objetivo de p99 sub-10ms, el rango interesante es `[0.005, 0.5]`. Pero igual necesitás buckets de cola — no para el tráfico normal, sino porque:
@@ -1771,6 +1899,8 @@ Buckets de este proyecto:       [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.
 ```
 
 La regla: **tu umbral de SLO más lento debe quedar dentro de un bucket**, no pasado el final.
+
+<a id="sub-16-4"></a>
 
 ### El label `status_class` — segmentación por resultado sin explosión de cardinalidad
 
@@ -1806,6 +1936,8 @@ histogram_quantile(0.99,
 
 — latencia p99 **solo de requests exitosos**, filtrando los paths de error que siempre son lentos (ej. paths con la base caída) para que no inflen la métrica del SLO.
 
+<a id="sub-16-5"></a>
+
 ### Cómo `status_class` habilita la alerta HighErrorRate
 
 La alerta `HighErrorRate` usa `http_requests_total` (el counter, que mantiene el `status` crudo). El `status_class` del histograma es aparte — está para el **panel de SLO** de latencia, no para la alerta de tasa de error. Las dos métricas sirven propósitos distintos:
@@ -1814,6 +1946,8 @@ La alerta `HighErrorRate` usa `http_requests_total` (el counter, que mantiene el
 | ----------------------- | -------------- | -------------------------------------------------------- |
 | `http_requests_total`   | `status` crudo | alerta de tasa de error — `rate(...{status=~"5.."}[5m])` |
 | `http_duration_seconds` | `status_class` | SLO de latencia — `histogram_quantile(0.99, ...)`        |
+
+<a id="sub-16-6"></a>
 
 ### Decisiones de diseño de paneles en Grafana
 
@@ -1826,6 +1960,8 @@ Tres paneles nuevos agregados en esta sesión:
 | RSS del proceso           | `process_resident_memory_bytes`    | detección de fugas — RSS creciendo por horas = fuga de memoria           |
 
 El filtro del panel de logs de error en Loki se cambió de `{level="50"}` (solo error) a `{level=~"40|50"}` (warn + error). pino emite niveles numéricos: `30`=info, `40`=warn, `50`=error. Las fallas de escritura de clicks loguean en `warn` (40) — serían invisibles con el filtro viejo.
+
+<a id="sub-16-7"></a>
 
 ### Cómo lo hace este proyecto (Histogramas)
 
@@ -1854,6 +1990,8 @@ Estos son tres ejes separados, no tres cajas mutuamente excluyentes:
 
 Podés tener un monolito request/response (este proyecto), un monolito orientado a eventos (un solo proceso que se habla a sí mismo vía un bus de eventos en memoria), microservicios request/response (servicios llamando a las APIs REST/gRPC de otros sincrónicamente), o microservicios orientados a eventos (servicios publicando a Kafka/SQS/RabbitMQ, desacoplados). Confundir los dos ejes es el error más común cuando este tema aparece en entrevistas.
 
+<a id="sub-17-1"></a>
+
 ### Monolito — cuándo es la decisión correcta
 
 Un monolito es **una unidad desplegable** que contiene toda la lógica de negocio, aunque internamente esté organizada en módulos/dominios (como las carpetas `url/`, `click/`, `counter/` de este proyecto).
@@ -1867,6 +2005,8 @@ Un monolito es **una unidad desplegable** que contiene toda la lógica de negoci
 - Este proyecto es exactamente este caso: un solo proceso Express. `url/`, `click/`, `counter/` son dominios dentro de una unidad de deploy. El `npm run build && node dist/main.js` del README es toda la historia de despliegue. Sin llamadas de red entre servicios, sin la clase de bugs de falla-parcial-entre-servicios.
 
 **Costo de quedarse monolito demasiado tiempo:** los cambios de un solo equipo empiezan a chocar (conflictos de merge, la suite de tests compartida se vuelve lenta), features no relacionadas deben escalar juntas (no podés escalar el path de redirect read-heavy independientemente del path de shorten write-heavy sin escalar el proceso entero), y un bug en un módulo puede crashear el proceso entero para tráfico no relacionado.
+
+<a id="sub-17-2"></a>
 
 ### Microservicios — cuándo es la decisión correcta
 
@@ -1882,6 +2022,8 @@ Los microservicios parten el sistema en servicios **independientemente desplegab
 
 **Costo:** las llamadas de red reemplazan las llamadas a función (latencia, falla parcial, retries, idempotencia), cada servicio necesita su propio CI/CD, monitoreo, historia de on-call; debuggear un solo request de usuario ahora significa correlacionar logs/trazas entre servicios (por _esto_ existe el tracing distribuido — sección 12 — es la herramienta que hace debuggeables a los microservicios). La consistencia de datos entre servicios requiere patrones de saga/outbox en vez de una transacción de DB.
 
+<a id="sub-17-3"></a>
+
 ### Arquitectura orientada a eventos — cuándo es la decisión correcta
 
 Orientado a eventos = los componentes se comunican **publicando hechos sobre lo que pasó** (eventos) a un broker, y otros componentes **reaccionan** asincrónicamente, en vez de que un componente llame directamente a otro y espere respuesta.
@@ -1895,6 +2037,8 @@ Orientado a eventos = los componentes se comunican **publicando hechos sobre lo 
 
 **Costo:** consistencia eventual (el consumidor puede procesar el evento segundos después — bien para "mandar email de bienvenida", mal para "confirmar el pago antes de enviar"), debuggear requiere trazar un evento a través de N consumidores async en vez de leer un call stack lineal, necesitás un broker (Kafka/SQS/RabbitMQ) como infraestructura nueva que correr/monitorear, y la semántica de orden de mensajes/dedup/entrega-at-least-once se vuelven problemas reales que debés diseñar (consumidores idempotentes, claves de dedup).
 
+<a id="sub-17-4"></a>
+
 ### Atajo de decisión
 
 | Pregunta                                                                                              | Se inclina hacia                                                                                |
@@ -1905,6 +2049,8 @@ Orientado a eventos = los componentes se comunican **publicando hechos sobre lo 
 | ¿Ninguno de los dolores de arriba existe todavía?                                                     | Monolito (default) — partí cuando aparezca un dolor _específico y medido_, no especulativamente |
 
 El patrón real más fuerte: **empezar monolito (request/response), extraer microservicios solo por las costuras donde realmente sentiste el dolor** (un módulo específico escalando distinto, un equipo específico bloqueado en releases), e **introducir eventos solo donde el desacople específicamente paga** (fan-out a múltiples consumidores futuros desconocidos, absorber picos de carga, necesidades de auditoría/replay) — no como estilo de comunicación default en todos lados.
+
+<a id="sub-17-5"></a>
 
 ### Cómo encaja este proyecto
 
@@ -1927,6 +2073,8 @@ Monolito + mayormente request/response, con un borde async fire-and-forget (los 
 <a id="sec-18"></a>
 
 ## 18. API Gateway — Qué Es, Patrones, Casos de Uso
+
+<a id="sub-18-1"></a>
 
 ### Qué hace realmente un API Gateway
 
@@ -1960,6 +2108,8 @@ La idea central: los clientes ven **una** superficie de API; el gateway esconde 
 | Observabilidad         | Punto central para emitir access logs / métricas / spans de trazas consistentes             |
 | Resiliencia            | Circuit breaking, retries, timeouts aplicados uniformemente en el borde                     |
 
+<a id="sub-18-2"></a>
+
 ### API Gateway vs reverse proxy vs load balancer vs service mesh
 
 Estos se confunden constantemente — se solapan pero resuelven problemas de forma distinta:
@@ -1972,6 +2122,8 @@ Estos se confunden constantemente — se solapan pero resuelven problemas de for
 | **Service mesh**  | Tráfico este-oeste _entre_ servicios internos (no de cara al cliente)                                                                               | Servicio-a-servicio interno                 | Istio, Linkerd                       |
 
 Un reverse proxy es el _mecanismo_; un API Gateway es un reverse proxy con **políticas con forma de API** encima (auth, cuotas, transformaciones por ruta, agregación). Un load balancer es usualmente un ingrediente _dentro_ de un gateway (rutear a réplicas sanas), no un reemplazo. Un service mesh resuelve la misma clase de preocupaciones transversales (retries, mTLS, observabilidad) pero para el tráfico _entre_ tus propios servicios, no el borde de cara al cliente — los dos se usan frecuentemente juntos: gateway en el borde, mesh internamente.
+
+<a id="sub-18-3"></a>
 
 ### Patrones centrales
 
@@ -1994,6 +2146,8 @@ GET /dashboard
 
 **Backend For Frontend (BFF)** — en vez de un gateway genérico para todos los clientes, correr un gateway _por tipo de cliente_ (web-BFF, mobile-BFF), cada uno moldeando/agregando respuestas de forma distinta para las necesidades de ese cliente (mobile quiere payloads más chicos, web quiere más detalle). Evita que el contrato de un solo gateway se convierta en un compromiso de mínimo común denominador entre clientes muy distintos.
 
+<a id="sub-18-4"></a>
+
 ### Cuándo necesitás uno
 
 | Señal                                                                                    | Se inclina hacia                                |
@@ -2004,6 +2158,8 @@ GET /dashboard
 | El cliente necesita datos ensamblados de varios servicios en un round trip               | API Gateway con agregación, o BFF               |
 | Formas de cliente muy distintas (mobile vs web vs API de partners)                       | BFF por tipo de cliente                         |
 | Las preocupaciones transversales están entre servicios _internos_, no de cara al cliente | Service mesh, no un gateway                     |
+
+<a id="sub-18-5"></a>
 
 ### Implementaciones en producción
 
@@ -2016,6 +2172,8 @@ GET /dashboard
 | [Traefik](https://traefik.io/traefik/)                                                | Auto-descubre backends vía labels de Docker/Kubernetes                 |
 | [Netflix Zuul](https://github.com/Netflix/zuul)                                       | Gateway JVM; mayormente superado por Spring Cloud Gateway              |
 
+<a id="sub-18-6"></a>
+
 ### Tradeoffs
 
 | Preocupación            | Sin gateway                                     | Con gateway                                                          |
@@ -2025,6 +2183,8 @@ GET /dashboard
 | Latencia                | Cliente→servicio directo                        | Un salto de red extra                                                |
 | Complejidad operativa   | Cada servicio simple                            | La config/deploy del gateway es una cosa más que correr y monitorear |
 | Simplicidad del cliente | El cliente debe conocer N ubicaciones/contratos | El cliente ve una superficie de API                                  |
+
+<a id="sub-18-7"></a>
 
 ### Cómo encaja este proyecto
 
