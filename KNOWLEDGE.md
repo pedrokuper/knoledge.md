@@ -108,10 +108,10 @@
 - [22. Redis a Fondo — Clave/Valor, Cache, Idempotencia y Atomicidad](#22-redis-a-fondo-clavevalor-cache-idempotencia-y-atomicidad)
 - [23. Pool de Conexiones](#23-pool-de-conexiones)
 - [24. Hash vs Cifrado — Simétrico y Asimétrico](#24-hash-vs-cifrado-simétrico-y-asimétrico)
-- [25. JWT — Autenticación, Autorización y el Chequeo `sub` == `_id`](#25-jwt-autenticación-autorización-y-el-chequeo-sub-_id)
+- [25. JWT — Autenticación, Autorización y el Chequeo `sub` == `_id`](#sec-25-jwt)
 - [26. Service Mesh y el Patrón Mediator](#26-service-mesh-y-el-patrón-mediator)
 - [27. Escalado Horizontal vs Vertical](#27-escalado-horizontal-vs-vertical)
-- [28. Arquitectura Orientada a Eventos — Caso: Depósito Bancario](#28-arquitectura-orientada-a-eventos-caso-depósito-bancario)
+- [28. Arquitectura Orientada a Eventos — Caso: Depósito Bancario](#sec-28-eventos-deposito)
 - [29. Pendientes de Investigación](#29-pendientes-de-investigación)
 
 ---
@@ -2348,6 +2348,8 @@ Mismo patrón en SSH, Signal/WhatsApp, PGP. Y JWT usa exactamente la misma dicot
 
 ---
 
+<a id="sec-25-jwt"></a>
+
 ## 25. JWT — Autenticación, Autorización y el Chequeo `sub` == `_id`
 
 ### Qué es
@@ -2510,6 +2512,8 @@ Las _sticky sessions_ (el LB fija cada usuario a una instancia) son el parche cu
 - [NGINX: load balancing](https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer/)
 
 ---
+
+<a id="sec-28-eventos-deposito"></a>
 
 ## 28. Arquitectura Orientada a Eventos — Caso: Depósito Bancario
 
